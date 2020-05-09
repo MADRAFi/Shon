@@ -92,9 +92,9 @@ begin
     SDLSTL := DISPLAY_LIST_GAME;
     chbas:= Hi(CHARSET_GAME);
     
-    fillbyte(pointer(SCREEN_TOP), 40, 0);   // size 960 (40 x 24 chars);
+    fillbyte(pointer(SCREEN_TOP), 40, 0);   // size 40 (40 x 1 chars);
     fillbyte(pointer(SCREEN_GAME), 880, 0);   // size 960 (40 x 24 chars); 
-    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 960 (40 x 24 chars); 
+    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars); 
     
     Gotoxy(1,1);
     Writeln('Test STRING');
