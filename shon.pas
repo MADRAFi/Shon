@@ -1,6 +1,6 @@
 program Scramble;
 { $librarypath '../blibs/'}
-uses atari, crt, rmt; // b_utils;
+uses atari, crt, joystick, rmt; // b_utils;
 
 const
 {$i const.inc}
@@ -66,30 +66,47 @@ var
 {$i interrupts.inc}
 
 procedure show_title;
+// Procedure to display title screen on start
+
 begin
-
-    GetIntVec(iVBL, old_vbl);
-    GetIntVec(iDLI, old_dli);
-
-    sdmctl := byte(normal or enable or missiles or players or oneline);
-    // sdlstl := word(@dlist_title);	// ($230) = @dlist_title, New DLIST Program
-    SDLSTL := DISPLAY_LIST_TITLE;
-
     SetIntVec(iVBL, @vbl_title);
     SetIntVec(iDLI, @dli_title);
-
-    nmien := $c0;			// $D40E = $C0, Enable DLI
+    // sdlstl := word(@dlist_title);	// ($230) = @dlist_title, New DLIST Program
+    SDLSTL := DISPLAY_LIST_TITLE;
     
-    fillbyte(pointer(SCREEN_TITLE+960+120), 120, 0);   // size 120 (3 x 40 chars in 1 line); + 
+    fillbyte(pointer(SCREEN_TITLE+1080), 120, 0);   // size 120 (3 x 40 chars in 1 line); + 960 of screen (40 x 24 chars) + (3 x 40 chars) for last 3 lines;
     
     repeat
-      IF consol = CN_START then gamestate:=GAMEINPROGRESS;
+      IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
       pause;
-    until consol = CN_START;
+    until (consol = CN_START) or (strig0 = 0 );
+end;
+
+procedure show_game;
+// main game procedure
+// displays game screen
+begin
+    SetIntVec(iVBL, @vbl_game);
+    SetIntVec(iDLI, @dli_game);
+    // sdmctl := byte(normal or enable or missiles or players or oneline);
+    SDLSTL := DISPLAY_LIST_GAME;
+    chbas:= Hi(CHARSET_GAME);
+    
+    fillbyte(pointer(SCREEN_TOP), 20, 0);   // size 960 (40 x 24 chars);
+    fillbyte(pointer(SCREEN_GAME), 960, 0);   // size 960 (40 x 24 chars); 
+    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 960 (40 x 24 chars); 
+    
+  
+    repeat
+      IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
+      pause;
+    until (consol = CN_START) or (strig0 = 0 );
 end;
 
 
 begin
+    CursorOff;
+    Randomize;
     //chbas := Hi(CHARSET_ADDRESS); // set custom charset
     //savmsc := VIDEO_RAM_ADDRESS;  // set custom video address
 
@@ -100,17 +117,14 @@ begin
 
 (*  set custom display list  *)
     //Pause;
-    //SDLSTL := DISPLAY_LIST_ADDRESS;
+    sdmctl := byte(normal or enable or missiles or players or oneline);
 
 (*  set and run vbl interrupt *)
-    // GetIntVec(iVBL, oldvbl);
-    // SetIntVec(iVBL, @vbl);
-    //nmien := $40;
+    GetIntVec(iVBL, old_vbl);
+    GetIntVec(iDLI, old_dli);
 
 (*  set and run display list interrupts *)
-    //GetIntVec(iDLI, oldsdli);
-    //SetIntVec(iDLI, @dli);
-    //nmien := $c0; // set $80 for dli only (without vbl)
+    nmien := $c0;			// $D40E = $C0, Enable DLI
     
 (*  your code goes here *)
     //Writeln(NullTermToString(strings[0]));
@@ -123,7 +137,7 @@ begin
     begin
       case gamestate of
         NEWGAME: show_title;
-        // GAMEINPROGRESS: wirus;
+        GAMEINPROGRESS: show_game;
         // GAMEOVER: gameover;
       end;
     end;

@@ -28,7 +28,7 @@
 CHARSET_TITLE1	rcdata 'Assets/shon_title12.f00'
 CHARSET_TITLE2	rcdata 'Assets/shon_title12.f01'
 CHARSET_TITLE3  rcdata 'Assets/shon_title12.f02'
-CHARSET_GAME	rcdata 'Assets/scramble.fnt'
+CHARSET_GAME	rcdata 'Assets/Scramble.fnt'
 
 SCREEN_TITLE        rcdata 'Assets/shon_title12.scr'
 
