@@ -1,0 +1,10 @@
+*.lst
+*.xex
+*.a65
+*.opt
+*.dat
+*.ved
+tools
+tools/*
+Media
+Media/*
