@@ -99,9 +99,12 @@ begin
     Gotoxy(1,1);
     Writeln('Test STRING');
     repeat
-      IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
-      pause;
+    //   IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
+    //   pause;
+    // until (consol = CN_START) or (strig0 = 0 ); 
+        pause;
     until (consol = CN_START) or (strig0 = 0 );
+    gamestate:=GAMEINPROGRESS;
 end;
 
 
