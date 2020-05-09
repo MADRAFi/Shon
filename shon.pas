@@ -92,11 +92,12 @@ begin
     SDLSTL := DISPLAY_LIST_GAME;
     chbas:= Hi(CHARSET_GAME);
     
-    fillbyte(pointer(SCREEN_TOP), 20, 0);   // size 960 (40 x 24 chars);
+    fillbyte(pointer(SCREEN_TOP), 40, 0);   // size 960 (40 x 24 chars);
     fillbyte(pointer(SCREEN_GAME), 960, 0);   // size 960 (40 x 24 chars); 
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 960 (40 x 24 chars); 
     
-  
+    Gotoxy(1,1);
+    Writeln('Test STRING');
     repeat
       IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
       pause;
