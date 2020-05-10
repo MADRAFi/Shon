@@ -1,6 +1,6 @@
-program Scramble;
-{ $librarypath '../blibs/'}
-uses atari, crt, joystick, rmt; // b_utils;
+program Shon;
+{$librarypath '../mads/blibs/'}
+uses atari, crt, joystick, rmt, b_crt;
 
 const
 {$i const.inc}
@@ -52,8 +52,8 @@ const
 	);
 
 
-{$r resources.rc}
-{$i types.inc}
+{$r resources.rc}               // including resource files with all assets
+{$i types.inc}                  // including defined type
 
 var
     gamestate: TGameState;
@@ -61,26 +61,46 @@ var
 
     msx: TRMT;
     old_vbl,old_dli:pointer;
-    //strings:array [0..0] of word absolute STRINGS_ADDRESS;
 
+{$i 'strings.inc'}              // including strings
 {$i interrupts.inc}
+
+// -----------------------------------------------------------------------------
+// auxiliary procedures
+
+procedure print_top( x: Byte; s: String);
+// prints string at x position on top row (1 line)
+begin
+  CRT_Init(SCREEN_TOP);
+  CRT_GotoXY(x,0);
+  CRT_Write(s);
+end;
+
+
+
+
+
+// -----------------------------------------------------------------------------
+
 
 procedure show_title;
 // Procedure to display title screen on start
-
 begin
     SetIntVec(iVBL, @vbl_title);
     SetIntVec(iDLI, @dli_title);
     // sdlstl := word(@dlist_title);	// ($230) = @dlist_title, New DLIST Program
     SDLSTL := DISPLAY_LIST_TITLE;
-    
+    savmsc:= SCREEN_TITLE;
+
     fillbyte(pointer(SCREEN_TITLE+1080), 120, 0);   // size 120 (3 x 40 chars in 1 line); + 960 of screen (40 x 24 chars) + (3 x 40 chars) for last 3 lines;
     
     repeat
-      IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
-      pause;
+        pause;
     until (consol = CN_START) or (strig0 = 0 );
+    gamestate:=GAMEINPROGRESS;
 end;
+
+// -----------------------------------------------------------------------------
 
 procedure show_game;
 // main game procedure
@@ -88,39 +108,44 @@ procedure show_game;
 begin
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game);
-    // sdmctl := byte(normal or enable or missiles or players or oneline);
+    sdmctl := byte(normal or enable or missiles or players or oneline);
     SDLSTL := DISPLAY_LIST_GAME;
     chbas:= Hi(CHARSET_GAME);
+
+
+
+    CRT_Init(SCREEN_TOP);
+    fillbyte(pointer(SCREEN_TOP), 40, 0);      // size 40 (40 x 1 chars);
+    CRT_Init(SCREEN_GAME);
+    fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
+    CRT_Init(SCREEN_BOTTOM);
+    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
+
+    // print_top(0,'SHON'~);
     
-    fillbyte(pointer(SCREEN_TOP), 40, 0);   // size 40 (40 x 1 chars);
-    fillbyte(pointer(SCREEN_GAME), 880, 0);   // size 960 (40 x 24 chars); 
-    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars); 
-    
-    Gotoxy(1,1);
-    Writeln('Test STRING');
+
     repeat
-    //   IF (consol = CN_START) or (strig0 = 0 ) then gamestate:=GAMEINPROGRESS;
-    //   pause;
-    // until (consol = CN_START) or (strig0 = 0 ); 
-        pause;
-    until (consol = CN_START) or (strig0 = 0 );
-    gamestate:=GAMEINPROGRESS;
+        pause;pause;
+    until keypressed;
+
+    //temporarly to test loop
+    gamestate:= GAMEOVER
 end;
 
-
+// -----------------------------------------------------------------------------
+// Main
+// -----------------------------------------------------------------------------
 begin
     CursorOff;
     Randomize;
     //chbas := Hi(CHARSET_ADDRESS); // set custom charset
-    //savmsc := VIDEO_RAM_ADDRESS;  // set custom video address
 
 (*  initialize RMT player  *)
     msx.player := pointer(RMT_PLAYER_ADDRESS);
     msx.modul := pointer(RMT_MODULE_TITLE);
     msx.Init(0);
 
-(*  set custom display list  *)
-    //Pause;
+
     sdmctl := byte(normal or enable or missiles or players or oneline);
 
 (*  set and run vbl interrupt *)
@@ -131,13 +156,14 @@ begin
     nmien := $c0;			// $D40E = $C0, Enable DLI
     
 (*  your code goes here *)
-    //Writeln(NullTermToString(strings[0]));
-    //Writeln(NullTermToString(strings[1]));
+    // clearing up screen memory space
+    // size depends on display list dlist_game.asm
+
 
     music:=false;    
-    gamestate:= NEWGAME;
+    gamestate:= GAMEINPROGRESS; // NEWGAME;
 
-    while True do
+    while true do
     begin
       case gamestate of
         NEWGAME: show_title;
@@ -148,8 +174,8 @@ begin
 
         
 (*  restore system interrupts *)
-    SetIntVec(iVBL, @old_vbl);
-    SetIntVec(iDLI, old_dli);
-    nmien := $40; // turn off dli
+    // SetIntVec(iVBL, @old_vbl);
+    // SetIntVec(iDLI, old_dli);
+    // nmien := $40; // turn off dli
 
 end.
