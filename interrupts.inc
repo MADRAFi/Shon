@@ -38,48 +38,51 @@
 procedure dli_game1; assembler; interrupt;
 asm {
 		pha             ; only using A register, so save it to the stack
-        lda #$00        ; new background color
-        sta WSYNC       ; first WSYNC gets us to start of scan line we want
-        ;sta ATARI.COLBK       ; change background color
+		lda #$00        ; new background color
+		sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		;sta ATARI.COLBK       ; change background color
 		sta ATARI.COLPF2
 		lda #<dli_game2      ; point to second DLI
-        sta VDSLST
-        pla             ; restore A register from stack
+		sta VDSLST
+		pla             ; restore A register from stack
 
 };
 end;
 procedure dli_game2; assembler; interrupt;
 asm {
-    	pha ; store registers
-        txa
-        pha
-        ldx #64         ; make 64 color changes
-        lda #$5f        ; initial bright pink color
-        sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		pha ; store registers
+		txa
+		pha
+		ldx #16        ; make 64 color changes
+		lda #$8e        ; initial color
+		sta WSYNC       ; first WSYNC gets us to start of scan line we want
 ?loop   sta ATARI.COLPF2       ; change background color
-        sec
-        sbc #1          ; make dimmer by decrementing luminance value
-        dex             ; update iteration count
-        sta WSYNC       ; make it the color change last ...
-        sta WSYNC       ;   for two scan lines
-        bne ?loop       ; sta doesn't affect processor flags so we are still checking result of dex
-        lda #$00        ; reset background color to black
-        sta ATARI.COLPF2
-        pla             ; restore X & A registers from stack
-        tax
+		sec
+		sbc #1          ; make dimmer by decrementing luminance value
+		dex             ; update iteration count
+		sta WSYNC       ; make it the color change last ...
+		sta WSYNC       ;   for two scan lines
+		sta WSYNC       ;   for  scan lines
+		sta WSYNC       ;   for  scan lines
+
+		bne ?loop       ; sta doesn't affect processor flags so we are still checking result of dex
+		lda #$00        ; reset color to black
+		sta ATARI.COLPF2
+		pla             ; restore X & A registers from stack
+		tax
 		lda #<dli_game3      ; point to second DLI
-        sta VDSLST
-    	pla ; restore registers
+		sta VDSLST
+		pla ; restore registers
 };
 end;
 procedure dli_game3; assembler; interrupt;
 asm {
 		pha             ; only using A register, so save it to the stack
-        lda #$00        ; new background color
-        sta WSYNC       ; first WSYNC gets us to start of scan line we want
-        ;sta ATARI.COLBK       ; change background color
+		lda #$00        ; new background color
+		sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		;sta ATARI.COLBK       ; change background color
 		sta ATARI.COLPF2
-        pla             ; restore A register from stack
+		pla             ; restore A register from stack
 
 };
 end;
@@ -91,7 +94,8 @@ begin
 	if music then msx.play;
 	asm {
 		phr ; store registers
-        ; inw timer
+		lda #<dli_game1      ; point to second DLI
+		sta VDSLST
 		plr ; restore registers
 		jmp $E462 ; jump to system VBL handler
 	};
