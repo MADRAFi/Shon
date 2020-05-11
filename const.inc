@@ -20,9 +20,9 @@ RMT_MODULE_TITLE = $8800;                           // RMT Module to play, song 
 //RMT_MODULE_GAME = $8800;                          // RMT Module to play during game
 
 SCREEN_TITLE = $AA00;                               // Screen memory address of Title Screen 
-SCREEN_GAME = $BA00;                                // Screen memory address of game's middle section area
-SCREEN_TOP = $CA00;                                 // Screen memory address of game's top row area
-SCREEN_BOTTOM = $CB00;                              // Screen memory address of game's bottom row area
+SCREEN_GAME = $AE00;                                // Screen memory address of game's middle section area
+SCREEN_TOP = $B200;                                 // Screen memory address of game's top row area
+SCREEN_BOTTOM = $B300;                              // Screen memory address of game's bottom row area
 // ;*** and here goes all other stuff
 
 NONE = $ff;

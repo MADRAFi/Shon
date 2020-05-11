@@ -1,5 +1,5 @@
 strings: array [0..2] of String = (
-    'Shon v0.1'~,
-    'Test'~,
+    'Shon v1'~,
+    'Score: '~,
     ' Press any key '*~
 );
