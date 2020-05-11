@@ -81,7 +81,6 @@ const
 
 
 
-
 {$r resources.rc}               // including resource files with all assets
 {$i types.inc}                  // including defined type
 
@@ -91,6 +90,10 @@ var
 
     msx: TRMT;
     old_vbl,old_dli:pointer;
+    x: Byte; // accessory variable in loops
+
+
+
 
 {$i 'strings.inc'}              // including strings
 {$i interrupts.inc}
@@ -107,14 +110,21 @@ begin
   CRT_Write(s);
 end;
 
-procedure print_game( x: Byte; y: Byte; s: String);
-// prints string at x position on top row (1 line)
+procedure print_game( x: Byte; y: Byte; s: String);overload;
+// prints string at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME);
+  CRT_Init(SCREEN_GAME,44,21);
   CRT_GotoXY(x,y);
   CRT_Write(s);
 end;
 
+procedure print_game( x: Byte; y: Byte; b: Byte);overload;
+// prints byte at x,y position in game area
+begin
+  CRT_Init(SCREEN_GAME);
+  CRT_GotoXY(x,y);
+  CRT_Write(chr(b));
+end;
 
 
 
@@ -164,8 +174,13 @@ begin
     fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
+    color1:=$0e;
+    print_game(0,10,'Terrain test'~);
 
-    // print_top(0,strings[0]);
+    for x:=0 to 10 do
+    begin
+        print_game(x,15,$52);
+    end;
     print_bottom(0,strings[1]);
 
     repeat
