@@ -56,6 +56,8 @@ asm {
 		ldx #16        ; make 64 color changes
 		lda #$8e        ; initial color
 		sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		sta WSYNC
+		sta WSYNC
 ?loop   sta ATARI.COLPF2       ; change background color
 		sec
 		sbc #1          ; make dimmer by decrementing luminance value
