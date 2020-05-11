@@ -51,12 +51,9 @@ DL_JVB = %01000001; // Jump to begining
 
 
 dl_start
-    dta DL_BLANK8 + DL_DLI                                     ; // 8 blank lines + color change in next row
-    dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_TOP)
-    dta DL_BLANK8                                                    ; // 1 row ANTIC 2, color change every row, setting new memory addres
-    dta DL_BLANK8 + DL_DLI
+    dta DL_BLANK8 + DL_DLI                                     ; // 8 blank lines + color change in next row                                                   ; // 1 row ANTIC 2, color change every row, setting new memory addres
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME)                                      ; // 2 blank rows
-    :17 dta DL_MODE_40x24T2 + DL_HSCROLL
+    :20 dta DL_MODE_40x24T2 + DL_HSCROLL
     dta DL_BLANK8                                               ; // 22 rows ANTIC 2, color change every row, adding horizontal scrolling 
     dta DL_BLANK8 + DL_DLI                                      ; // // 8 blank lines (blank row) + color change in next row
     dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_BOTTOM)                                         ; // 1 row ANTIC 2

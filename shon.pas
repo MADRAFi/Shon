@@ -51,11 +51,11 @@ const
 		$FC,$FC,$FC,$FC,$FC,$00
 	);
 
-	c0_Game: array [0..19] of byte = (
-		$8C,$8A,$88,$86,$84,$82,$80,$00,
-        $02,$04,$06,$08,$0A,$0c,$00,$00,
-        $00,$00,$00,$00
-	);
+	// c0_Game: array [0..19] of byte = (
+	// 	$8C,$8A,$88,$86,$84,$82,$80,$00,
+    //     $02,$04,$06,$08,$0A,$0c,$00,$00,
+    //     $00,$00,$00,$00
+	// );
 
 	// c1_Game: array [0..19] of byte = (
 	// 	$14,$14,$14,$14,$14,$14,$14,$14,
@@ -98,13 +98,6 @@ var
 // -----------------------------------------------------------------------------
 // auxiliary procedures
 
-procedure print_top( x: Byte; s: String);
-// prints string at x position on top row (1 line)
-begin
-  CRT_Init(SCREEN_TOP);
-  CRT_GotoXY(x,0);
-  CRT_Write(s);
-end;
 
 procedure print_bottom( x: Byte; s: String);
 // prints string at x position on bottom row (1 line)
@@ -168,14 +161,11 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-
-
-    fillbyte(pointer(SCREEN_TOP), 40, 0);      // size 40 (40 x 1 chars);
     fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
 
-    print_top(0,strings[0]);
+    // print_top(0,strings[0]);
     print_bottom(0,strings[1]);
 
     repeat

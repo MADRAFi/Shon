@@ -1,63 +1,17 @@
 (* declare your interrupt routines here *)
 
-// procedure dli; assembler; interrupt;
-// asm {
-//     phr ; store registers
-
-// ;   *** example test routine
-// ;    lda #64 ; wait this number of lines
-// ;@   cmp vcount
-// ;    bpl @-
-// ;    mva #$0f atari.colbk ; change backgroung color to white
-    
-//     plr ; restore registers
-// };
-// end;
-
-
-
-// procedure vbl; interrupt;
-// begin
-// 	if music then msx.play;
-// 	asm {
-// 		phr ; store registers
-		
-// 	;   *** example test routine    
-// 	;    mva 20 atari.colbk // blink background
-		
-// 	;   *** RMT play routine
-// 	;    lda MSX
-// 	;    ldy MSX+1
-// 	;    jsr RMT.TRMT.PLAY
-
-// 		plr ; restore registers
-// 		jmp $E462 ; jump to system VBL handler
-// 	};
-// end;
-
 procedure dli_game1; assembler; interrupt;
-asm {
-		pha             ; only using A register, so save it to the stack
-		lda #$00        ; new background color
-		sta WSYNC       ; first WSYNC gets us to start of scan line we want
-		;sta ATARI.COLBK       ; change background color
-		sta ATARI.COLPF2
-		lda #<dli_game2      ; point to second DLI
-		sta VDSLST
-		pla             ; restore A register from stack
-
-};
-end;
-procedure dli_game2; assembler; interrupt;
 asm {
 		pha ; store registers
 		txa
 		pha
-		ldx #16        ; make 64 color changes
-		lda #$8e        ; initial color
-		sta WSYNC       ; first WSYNC gets us to start of scan line we want
-		sta WSYNC
-		sta WSYNC
+		ldx #16        ; number of color changes
+		lda #$8f        ; initial color
+		; sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		; sta WSYNC
+		; sta WSYNC
+		; sta WSYNC
+
 ?loop   sta ATARI.COLPF2       ; change background color
 		sec
 		sbc #1          ; make dimmer by decrementing luminance value
@@ -72,12 +26,12 @@ asm {
 		sta ATARI.COLPF2
 		pla             ; restore X & A registers from stack
 		tax
-		lda #<dli_game3      ; point to second DLI
+		lda #<dli_game2      ; point to second DLI
 		sta VDSLST
 		pla ; restore registers
 };
 end;
-procedure dli_game3; assembler; interrupt;
+procedure dli_game2; assembler; interrupt;
 asm {
 		pha             ; only using A register, so save it to the stack
 		lda #$00        ; new background color
