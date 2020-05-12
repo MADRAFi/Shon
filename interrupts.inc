@@ -52,6 +52,15 @@ end;
 procedure vbl_game; interrupt;
 begin
 	if music then msx.play;
+
+ 	hscrol:=hposition;
+ 	// hposition:=(hposition-1) and 3;
+	 Dec(hposition);
+	if hposition = 0 then
+	begin
+		hposition:=SCREENWIDTH;
+	end;
+
 	asm {
 		phr ; store registers
 		lda #<dli_game1      ; point to second DLI
@@ -69,6 +78,7 @@ end;
 procedure vbl_title; interrupt;
 begin
 	if music then msx.play;
+	
 	asm
 	{
 		// phr ; store registers

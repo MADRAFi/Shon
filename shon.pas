@@ -91,7 +91,7 @@ var
     msx: TRMT;
     old_vbl,old_dli:pointer;
     x: Byte; // accessory variable in loops
-
+    hposition: Byte;
 
 
 
@@ -171,11 +171,12 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-    fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
+    fillbyte(pointer(SCREEN_GAME), 2048, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
     //starting position of hscrol
     ATARI.hscrol:=15;
+    hposition:=SCREENWIDTH;
 
     color1:=$0e;
     print_game(0,12,'Terrain test'~);

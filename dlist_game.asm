@@ -37,22 +37,9 @@ DL_JVB = %01000001; // Jump to begining
 
 ; and declare display list itself
 
-; dl_start
-;     dta DL_BLANK8 + DL_DLI                                     ; // 8 blank lines + color change in next row
-;     dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_GAME)               ; // 1 row ANTIC 2, color change every row, setting new memory addres
-;     ; dta DL_BLANK8
-;     dta DL_BLANK8 + DL_DLI                                            ; // 2 blank rows
-;     :18 dta DL_MODE_40x24T2 + DL_DLI                ; // 22 rows ANTIC 2, color change every row, adding horizontal scrolling 
-;     ; dta DL_BLANK8                                               ; // // 8 blank lines (blank row)
-;     dta DL_BLANK8 + DL_DLI                                      ; // // 8 blank lines (blank row) + color change in next row
-;     dta DL_MODE_40x24T2                                         ; // 1 row ANTIC 2
-;     dta DL_BLANK8                                               ; // 8 blank lines
-;     dta DL_JVB, a(dl_start)                                     ; // jump to beginning
-
-
 dl_start
-    dta DL_BLANK8 + DL_DLI                                     ; // 8 blank lines + color change in next row                                                   ; // 1 row ANTIC 2, color change every row, setting new memory addres
-    dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME)                                      ; // 2 blank rows
+    dta DL_BLANK8 + DL_DLI                                                                  ; // 8 blank lines + color change in next row                                                   
+    dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME)                               ; // 22 rows ANTIC 2, color change every row, adding horizontal scrolling     
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 1))
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 2))
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 3))
@@ -73,8 +60,8 @@ dl_start
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 18))
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 19))
     dta DL_MODE_40x24T2 + DL_HSCROLL + DL_LMS, a(SCREEN_GAME + (SCREENWIDTH * 20))
-    dta DL_BLANK8                                               ; // 22 rows ANTIC 2, color change every row, adding horizontal scrolling 
-    dta DL_BLANK8 + DL_DLI                                      ; // // 8 blank lines (blank row) + color change in next row
-    dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_BOTTOM)                                         ; // 1 row ANTIC 2
-    dta DL_BLANK8                                               ; // 8 blank lines
-    dta DL_JVB, a(dl_start)                                     ; // jump to beginning
+    dta DL_BLANK8                                               
+    dta DL_BLANK8 + DL_DLI                                                                  ; // 8 blank lines (blank row) + color change in next row
+    dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_BOTTOM)                                          ; // 1 row ANTIC 2
+    dta DL_BLANK8                                                                           ; // 8 blank lines
+    dta DL_JVB, a(dl_start)                                                                 ; // jump to beginning
