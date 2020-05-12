@@ -25,4 +25,4 @@ CHARSET_GAME = CHARSET_TITLE3 + $400;
 // ;*** and here goes all other stuff
 
 NONE = $ff;
-
+SCREENWIDTH = 96;
