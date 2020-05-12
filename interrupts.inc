@@ -52,42 +52,12 @@ end;
 procedure vbl_game; interrupt;
 begin
 	if music then msx.play;
-	// hscrol:=hposition;
-	// dec(hposition);
-	// if hposition=0 then
-	// begin
-	// hposition:=44; //inc(pc^,2); dec(count);
-	// if count=14 then
-	// 	begin
-	// 		count:=0; pc^:=tmp;
-	// 	end
-	// end;
-	
 	asm {
-			phr ; store registers
-
-			lda #<dli_game1      ; point to second DLI
-			sta VDSLST
-
-			; dec hposition
-			; lda hposition
-			; bpl ?done       ; if non-negative, still in the middle of the character
-			; jsr coarse_scroll_right ; wrapped to $ff, do a coarse scroll...
-			; lda #H_SCROLL_MAX-1  ;  ...followed by reseting the HSCROL register
-			; sta hposition
-			; ?done   sta ATARI.HSCROL      ; store vertical scroll value in hardware register
-			; coarse_scroll_right
-			; 		ldy #22         ; 22 lines to modify
-			; 		ldx #4          ; 4th byte after start of display list is low byte of address
-			; ?loop   inc DISPLAY_LIST_GAME,x
-			; 		inx             ; skip to next low byte which is 3 bytes away
-			; 		inx
-			; 		inx
-			; 		dey
-			; 		bne ?loop
-
-			 		plr ; restore registers
-			 		jmp $E462 ; jump to system VBL handler
+		phr ; store registers
+		lda #<dli_game1      ; point to second DLI
+		sta VDSLST
+		plr ; restore registers
+		jmp $E462 ; jump to system VBL handler
 	};
 end;
 

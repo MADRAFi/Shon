@@ -7,7 +7,7 @@
 // Relative addressing
 FREE_BOTTOM = $4000;                               // This address has to be higher then address shown as $DATA from compilator output.
 SCREEN_GAME = FREE_BOTTOM;                         // Screen memory address of game's middle section area
-SCREEN_BOTTOM = SCREEN_GAME + $400;                // Screen memory address of game's bottom row area
+SCREEN_BOTTOM = SCREEN_GAME + $800;                // Screen memory address of game's bottom row area
 DISPLAY_LIST_GAME = SCREEN_BOTTOM + $100;
 DISPLAY_LIST_TITLE = DISPLAY_LIST_GAME + $100;
 PMG_BASE = DISPLAY_LIST_TITLE + $100;               // Player Missle Graphics
@@ -25,4 +25,6 @@ CHARSET_GAME = CHARSET_TITLE3 + $400;
 // ;*** and here goes all other stuff
 
 NONE = $ff;
-SCREENWIDTH = 96;
+
+SCREENWIDTH = 40;
+SCREENHEIGHT = 21;

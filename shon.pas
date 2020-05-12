@@ -15,7 +15,7 @@ const
 	// 	$41,lo(word(@dlist)),hi(word(@dlist))
 	// );
 
-
+    // 
 	fnt_Title: array [0..29] of byte = (
 		hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),
 		hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE2),hi(CHARSET_TITLE2),hi(CHARSET_TITLE2),
@@ -79,6 +79,8 @@ const
 	// );
 
 
+
+
 {$r resources.rc}               // including resource files with all assets
 {$i types.inc}                  // including defined type
 
@@ -89,11 +91,8 @@ var
     msx: TRMT;
     old_vbl,old_dli:pointer;
     x: Byte; // accessory variable in loops
-    // tmp: Word;
-    hposition: Byte=0;
-    // hposition: Byte = $91;       //; variable used to store HSCROL value
-    // pc: ^byte;
-    count: Byte;
+
+
 
 
 {$i 'strings.inc'}              // including strings
@@ -114,18 +113,17 @@ end;
 procedure print_game( x: Byte; y: Byte; s: String);overload;
 // prints string at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME,SCREENWIDTH,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+  CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
   CRT_GotoXY(x,y);
   CRT_Write(s);
-
 end;
 
 procedure print_game( x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME,SCREENWIDTH,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+  CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
   CRT_GotoXY(x,y);
-  CRT_Write(chr(b));             // adding 32 bytes to display in ANTIC
+  CRT_Write(chr(b));
 end;
 
 
@@ -173,26 +171,21 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-    fillbyte(pointer(SCREEN_GAME), 2048, 0);    //  clearing SCREEN_GAME memory
+    fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
     //starting position of hscrol
     ATARI.hscrol:=15;
 
-    count:=0; hposition:=0;
-    // pc:=pointer(DISPLAY_LIST_GAME);
-    // inc(pc, 28); 
-    // tmp := pc^+6;
-    
     color1:=$0e;
-    // print_game(5,9,'Terrain test'~);
+    print_game(0,12,'Terrain test'~);
 
-    // for x:=5 to 50 do
-    // begin
-    //     print_game(x,18,$4D);
-    // end;
+    for x:=5 to 20 do
+    begin
+        print_game(x,18,77);
+    end;
     
-    // print_bottom(0,strings[1]);
+    print_bottom(0,strings[1]);
 
 
     repeat
