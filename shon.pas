@@ -105,7 +105,7 @@ var
 procedure print_bottom( x: Byte; s: String);
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM);
+  CRT_Init(SCREEN_BOTTOM,40,1);
   CRT_GotoXY(x,0);
   CRT_Write(s);
 end;
@@ -113,17 +113,22 @@ end;
 procedure print_game( x: Byte; y: Byte; s: String);overload;
 // prints string at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME,44,21);
+  CRT_Init(SCREEN_GAME,48,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
   CRT_GotoXY(x,y);
   CRT_Write(s);
+
+  CRT_GotoXY(5,10);
+  CRT_Put(68+64);CRT_Write('=>'~);CRT_Write(Chr(68+64));
 end;
 
 procedure print_game( x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME);
+  CRT_Init(SCREEN_GAME,48,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
   CRT_GotoXY(x,y);
   CRT_Write(chr(b));
+//   CRT_GotoXY(x,y+1);
+//   CRT_Write(chr(66));
 end;
 
 
@@ -174,14 +179,19 @@ begin
     fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
-    color1:=$0e;
-    print_game(0,10,'Terrain test'~);
+    //starting position of hscrol
+    ATARI.hscrol:=15;
 
-    for x:=0 to 10 do
-    begin
-        print_game(x,15,$52);
-    end;
+    color1:=$0e;
+    print_game(0,9,'Terrain test'~);
+
+    // for x:=5 to 10 do
+    // begin
+    //     print_game(x,11,77);
+    // end;
+    
     print_bottom(0,strings[1]);
+
 
     repeat
         pause;pause;

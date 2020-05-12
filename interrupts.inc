@@ -5,19 +5,23 @@ asm {
 		pha ; store registers
 		txa
 		pha
-		ldx #16        ; number of color changes
+		ldx #8        ; number of color changes
 		lda #$8f        ; initial color
-		; sta WSYNC       ; first WSYNC gets us to start of scan line we want
+		sta WSYNC       ; first WSYNC gets us to start of scan line we want
 		; sta WSYNC
 		; sta WSYNC
 		; sta WSYNC
 
 ?loop   sta ATARI.COLPF2       ; change background color
 		sec
-		sbc #1          ; make dimmer by decrementing luminance value
+		sbc #2          ; make dimmer by decrementing luminance value
 		dex             ; update iteration count
 		sta WSYNC       ; make it the color change last ...
 		sta WSYNC       ;   for two scan lines
+		sta WSYNC       ;   for  scan lines
+		sta WSYNC       ;   for  scan lines
+		sta WSYNC       ;   for  scan lines
+		sta WSYNC       ;   for  scan lines
 		sta WSYNC       ;   for  scan lines
 		sta WSYNC       ;   for  scan lines
 
