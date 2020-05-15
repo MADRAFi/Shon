@@ -51,20 +51,15 @@ end;
 
 procedure vbl_game; interrupt;
 begin
+	asm {
+		phr 				; store registers
+		};
 	if music then msx.play;
 	dec(hposition);
 	ATARI.hscrol:=hposition;
  	Inc(hscroll_count);
  	if (hposition = 0) then
   	begin
-	  	If hscroll_count = SCREENWIDTH then
-	  	begin
-			hscroll_count:=0;
-			for i:=0 to 20 do
-			begin
-				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , lms[i]);
-			end;	
-		end;
 		for i:=0 to 20 do
 		begin
 			lms[i]:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
@@ -72,13 +67,20 @@ begin
 			inc(newlms);
 			dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
 		end;
-		
+		// If hscroll_count = SCREENWIDTH then
+	  	// begin
+		// 	hscroll_count:=0;
+		// 	for i:=0 to 20 do
+		// 	begin
+		// 		dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , lms[i]);
+		// 	end;	
+		// end;
      	hposition:=4;
 		ATARI.hscrol:=hposition;
   	end;
 
 	asm {
-		phr 				; store registers
+
 		lda #<dli_game1     ; point to second DLI
 		sta VDSLST
 		plr 				; restore registers
