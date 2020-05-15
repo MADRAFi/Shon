@@ -62,19 +62,20 @@ begin
   	begin
 		for i:=0 to 20 do
 		begin
-			lms[i]:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
-			newlms:=lms[i];
+			newlms:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
+			// newlms:=lms[i];
 			inc(newlms);
 			dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
 		end;
-		// If hscroll_count = SCREENWIDTH then
-	  	// begin
-		// 	hscroll_count:=0;
-		// 	for i:=0 to 20 do
-		// 	begin
-		// 		dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , lms[i]);
-		// 	end;	
-		// end;
+		If hscroll_count = SCREENWIDTH then
+	  	begin
+			hscroll_count:=0;
+			for i:=0 to 20 do
+			begin
+				newlms:=word(SCREEN_GAME + (SCREENWIDTH * i));
+				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+			end;	
+		end;
      	hposition:=4;
 		ATARI.hscrol:=hposition;
   	end;
