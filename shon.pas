@@ -93,8 +93,9 @@ var
     x: Byte; // accessory variable in loops
     i: Byte;
     hposition: Byte;
-    pdlist: Pointer; 
-	lms: Byte;
+    hscroll_count: Byte;
+    // pdlist: Pointer; 
+	lms: Word;
 
 
 
@@ -121,11 +122,13 @@ begin
   CRT_Write(s);
 end;
 
-procedure print_game( x: Byte; y: Byte; b: Byte);overload;
+procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(x,y);
+  CRT_GotoXY(44,y);
+  CRT_Write(chr(b));
+  CRT_GotoXY(4,y);
   CRT_Write(chr(b));
 end;
 
@@ -187,16 +190,12 @@ begin
     //starting position of hscrol
     // ATARI.hscrol:=15;
     hposition:=4;
-    // pdlist := Pointer(DISPLAY_LIST_GAME);
+    hscroll_count:=0;
     
     color1:=$0e;
-    print_game(0,12,'Terrain test'~);
+    print_game(20,12,'Terrain test'~);
 
-    for x:=0 to 20 do
-    begin
-        print_game(x,18,77);
-        print_game(2,x,x);
-    end;
+
     
     print_bottom(0,strings[1]);
 
@@ -208,7 +207,11 @@ begin
         if hposition = 0 then
         begin
             //drawing new elements
-            
+            for x:=0 to 20 do
+            begin
+                print_game(18,77);
+                // print_game(2,x,x);
+            end;
         end;
     until keypressed;
 
