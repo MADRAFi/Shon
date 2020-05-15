@@ -55,9 +55,9 @@ begin
 		phr 				; store registers
 		};
 	if music then msx.play;
-	dec(hposition);
+
 	ATARI.hscrol:=hposition;
- 	Inc(hscroll_count);
+
  	if (hposition = 0) then
   	begin
 		for i:=0 to 20 do
@@ -76,10 +76,11 @@ begin
 				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
 			end;	
 		end;
+		Inc(hscroll_count);
      	hposition:=4;
-		ATARI.hscrol:=hposition;
+		// ATARI.hscrol:=hposition;
   	end;
-
+	dec(hposition);
 	asm {
 
 		lda #<dli_game1     ; point to second DLI

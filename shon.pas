@@ -190,7 +190,7 @@ begin
 
     //starting position of hscrol
     // ATARI.hscrol:=15;
-    hposition:=4;
+    hposition:=3;
     hscroll_count:=0;
     
     color1:=$0e;
