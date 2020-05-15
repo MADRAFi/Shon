@@ -52,14 +52,21 @@ end;
 procedure vbl_game; interrupt;
 begin
 	if music then msx.play;
-
- 	hscrol:=hposition;
- 	// hposition:=(hposition-1) and 3;
-	 Dec(hposition);
-	if hposition = 0 then
-	begin
-		hposition:=SCREENWIDTH;
-	end;
+	dec(hposition);
+	ATARI.hscrol:=hposition;
+ 	
+ 	if hposition=0 then
+  	begin
+	  	for i:=0 to 20 do
+		begin
+			lms:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
+			inc(lms);
+   			if lms = 96 then lms:=0;
+			dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , lms);
+		end;
+     	hposition:=4;
+		ATARI.hscrol:=hposition;
+  	end;
 
 	asm {
 		phr ; store registers

@@ -89,9 +89,12 @@ var
     music: Boolean;
 
     msx: TRMT;
-    old_vbl,old_dli:pointer;
+    old_vbl,old_dli:Pointer;
     x: Byte; // accessory variable in loops
+    i: Byte;
     hposition: Byte;
+    pdlist: Pointer; 
+	lms: Byte;
 
 
 
@@ -126,7 +129,14 @@ begin
   CRT_Write(chr(b));
 end;
 
-
+procedure WaitFrame;
+begin
+     asm {
+          lda 20
+          cmp 20
+          beq *-2
+     };
+end;
 
 // -----------------------------------------------------------------------------
 
@@ -175,22 +185,31 @@ begin
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
     //starting position of hscrol
-    ATARI.hscrol:=15;
-    hposition:=SCREENWIDTH;
-
+    // ATARI.hscrol:=15;
+    hposition:=4;
+    // pdlist := Pointer(DISPLAY_LIST_GAME);
+    
     color1:=$0e;
     print_game(0,12,'Terrain test'~);
 
-    for x:=5 to 20 do
+    for x:=0 to 20 do
     begin
         print_game(x,18,77);
+        print_game(2,x,x);
     end;
     
     print_bottom(0,strings[1]);
 
 
     repeat
-        pause;pause;
+        WaitFrame;
+        // pause;
+
+        if hposition = 0 then
+        begin
+            //drawing new elements
+            
+        end;
     until keypressed;
 
     //temporarly to test loop
