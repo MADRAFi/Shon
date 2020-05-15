@@ -56,8 +56,6 @@ begin
 		};
 	if music then msx.play;
 
-	ATARI.hscrol:=hposition;
-
  	if (hposition = 0) then
   	begin
 		for i:=0 to 20 do
@@ -73,13 +71,14 @@ begin
 			for i:=0 to 20 do
 			begin
 				newlms:=word(SCREEN_GAME + (SCREENWIDTH * i));
-				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+				// dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
 			end;	
 		end;
 		Inc(hscroll_count);
      	hposition:=4;
-		// ATARI.hscrol:=hposition;
+
   	end;
+	ATARI.hscrol:=hposition;
 	dec(hposition);
 	asm {
 
