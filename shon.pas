@@ -95,7 +95,8 @@ var
     hposition: Byte;
     hscroll_count: Byte;
     // pdlist: Pointer; 
-	lms: Word;
+	lms: array[0..20] of Word;
+    newlms: Word;
 
 
 
