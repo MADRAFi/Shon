@@ -63,22 +63,22 @@ begin
 		Inc(hscroll_count);
   	
 		// reset LMS to default
-		If hscroll_count = 48 then
+		If hscroll_count = SCREENWIDTH then
 	  	begin
 			hscroll_count:=0;
 			for i:=0 to 20 do
 			begin
-				newlms:=word(SCREEN_GAME) + (SCREENWIDTH * i);
-				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+				newlms:=SCREEN_GAME + (SCREENWIDTH * i);
+				dpoke(DISPLAY_LIST_GAME + (3 * i) + 2 , newlms);
 			end;	
 		end
 		else
 		begin
 			for i:=0 to 20 do
 			begin
-				newlms:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
+				newlms:=dpeek(DISPLAY_LIST_GAME + (3 * i + 2));
 				inc(newlms);
-				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+				dpoke(DISPLAY_LIST_GAME + (3 * i) + 2 , newlms);
 			end;
 		end;
 

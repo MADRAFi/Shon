@@ -127,7 +127,7 @@ procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY((SCREENWIDTH div 2 ) - 4 + hscroll_count,y);
+  CRT_GotoXY((SCREENWIDTH div 2 ) + 4 + hscroll_count,y);
   CRT_Write(chr(b));
   CRT_GotoXY(4+hscroll_count,y);
   CRT_Write(chr(b));
