@@ -65,9 +65,9 @@ var
     i: Byte;
     hposition: Byte;
     hscroll_count: Byte;
-    hposition_offset : Word;
 
     newlms: Word;
+    lms: Word;
 
 
 
@@ -102,7 +102,7 @@ begin
 //   CRT_Write(chr(b));
 //   CRT_GotoXY(4+hscroll_count,y);
 //   CRT_Write(chr(b));
-     DPoke(SCREEN_GAME + hscroll_count + (SCREENWIDTH * y),b);
+     DPoke(SCREEN_GAME + hscroll_count + (MAXWIDTH * y),b);
 end;
 
 procedure WaitFrame;
@@ -147,7 +147,6 @@ procedure show_game;
 *)
 begin
     hposition:=4;
-    hposition_offset:=0;
     hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);

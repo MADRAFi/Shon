@@ -58,32 +58,31 @@ begin
 	if music then msx.play;
 	if (hposition = 0) then
   	begin
-     	hposition:=4;
-
+     	hposition := 4;
+	  	// coarse scroll  
 		Inc(hscroll_count);
   	
 		// reset LMS to default
-		If hscroll_count = 48 then
+        lms := DISPLAY_LIST_GAME + 2;
+		If hscroll_count = MAXWIDTH then
 	  	begin
 			hscroll_count:=0;
-			hposition_offset:=0;
+            newlms:=SCREEN_GAME + MAXWIDTH;
 			for i:=0 to 20 do
 			begin
-				newlms:=SCREEN_GAME + (SCREENWIDTH * i);
-				dpoke(DISPLAY_LIST_GAME + hposition_offset + 2 , newlms);
-				Inc(hposition_offset,3);
+				dpoke(lms, newlms);
+				Inc(newlms,MAXWIDTH);
+                Inc(lms,3)
 			end;	
 		end
 		else
-		// coarse scroll  
 		begin
-			hposition_offset:=0;
 			for i:=0 to 20 do
 			begin
-				newlms:=dpeek(DISPLAY_LIST_GAME + hposition_offset + 2);
+				newlms:=dpeek(lms);
 				inc(newlms);
-				dpoke(DISPLAY_LIST_GAME + hposition_offset + 2 , newlms);
-				Inc(hposition_offset,3);
+				dpoke(lms, newlms);
+                Inc(lms,3)
 			end;
 		end;
 
