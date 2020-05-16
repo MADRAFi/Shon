@@ -54,34 +54,41 @@ begin
 	asm {
 		phr 				; store registers
 		};
-	if music then msx.play;
 
- 	if (hposition = 0) then
+	if music then msx.play;
+	if (hposition = 0) then
   	begin
-		for i:=0 to 20 do
-		begin
-			newlms:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
-			// newlms:=lms[i];
-			inc(newlms);
-			dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
-		end;
-		If hscroll_count = SCREENWIDTH then
+     	hposition:=4;
+	  	// coarse scroll  
+		Inc(hscroll_count);
+  	
+		// reset LMS to default
+		If hscroll_count = 48 then
 	  	begin
 			hscroll_count:=0;
 			for i:=0 to 20 do
 			begin
-				newlms:=word(SCREEN_GAME + (SCREENWIDTH * i));
-				// dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+				newlms:=word(SCREEN_GAME) + (SCREENWIDTH * i);
+				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
 			end;	
+		end
+		else
+		begin
+			for i:=0 to 20 do
+			begin
+				newlms:=dpeek(word(DISPLAY_LIST_GAME) + (3 * i) + 2);
+				inc(newlms);
+				dpoke(word(DISPLAY_LIST_GAME) + (3 * i) + 2 , newlms);
+			end;
 		end;
-		Inc(hscroll_count);
-     	hposition:=4;
 
-  	end;
+	end;
+	
 	ATARI.hscrol:=hposition;
 	dec(hposition);
-	asm {
+ 	
 
+	asm {
 		lda #<dli_game1     ; point to second DLI
 		sta VDSLST
 		plr 				; restore registers

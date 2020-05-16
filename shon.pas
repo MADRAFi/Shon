@@ -127,9 +127,9 @@ procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(44,y);
+  CRT_GotoXY((SCREENWIDTH div 2 ) - 4 + hscroll_count,y);
   CRT_Write(chr(b));
-  CRT_GotoXY(4,y);
+  CRT_GotoXY(4+hscroll_count,y);
   CRT_Write(chr(b));
 end;
 
@@ -174,6 +174,8 @@ procedure show_game;
    displays game screen
 *)
 begin
+    hposition:=4;
+    hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -190,11 +192,11 @@ begin
 
     //starting position of hscrol
     // ATARI.hscrol:=15;
-    hposition:=3;
-    hscroll_count:=0;
+    // hposition:=3;
+
     
     color1:=$0e;
-    print_game(20,12,'Terrain test'~);
+    // print_game(20,12,'Terrain test'~);
 
 
     
@@ -210,7 +212,7 @@ begin
             //drawing new elements
             for x:=0 to 20 do
             begin
-                print_game(18,77);
+                print_game(16,77);
                 // print_game(2,x,x);
             end;
         end;

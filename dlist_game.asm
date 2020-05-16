@@ -63,5 +63,6 @@ dl_start
     dta DL_BLANK8                                               
     dta DL_BLANK8 + DL_DLI                                                                  ; // 8 blank lines (blank row) + color change in next row
     dta DL_MODE_40x24T2 + DL_LMS, a(SCREEN_BOTTOM)                                          ; // 1 row ANTIC 2
-    dta DL_BLANK8                                                                           ; // 8 blank lines
+    ; dta DL_BLANK8                                                                           ; // 8 blank lines
     dta DL_JVB, a(dl_start)                                                                 ; // jump to beginning
+
