@@ -65,6 +65,7 @@ var
     i: Byte;
     hposition: Byte;
     hscroll_count: Byte;
+    hposition_offset : Word;
 
     newlms: Word;
 
@@ -85,22 +86,23 @@ begin
   CRT_Write(s);
 end;
 
-procedure print_game( x: Byte; y: Byte; s: String);overload;
-// prints string at x,y position in game area
-begin
-  CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(x,y);
-  CRT_Write(s);
-end;
+// procedure print_game( x: Byte; y: Byte; s: String);overload;
+// // prints string at x,y position in game area
+// begin
+//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+//   CRT_GotoXY(x,y);
+//   CRT_Write(s);
+// end;
 
 procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(48+4 + hscroll_count,y);
-  CRT_Write(chr(b));
+//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+//   CRT_GotoXY(48+4 + hscroll_count,y);
+//   CRT_Write(chr(b));
 //   CRT_GotoXY(4+hscroll_count,y);
 //   CRT_Write(chr(b));
+     DPoke(SCREEN_GAME + hscroll_count + (SCREENWIDTH * y),b);
 end;
 
 procedure WaitFrame;
@@ -145,6 +147,7 @@ procedure show_game;
 *)
 begin
     hposition:=4;
+    hposition_offset:=0;
     hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);

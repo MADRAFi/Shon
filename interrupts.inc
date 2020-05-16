@@ -66,20 +66,24 @@ begin
 		If hscroll_count = 48 then
 	  	begin
 			hscroll_count:=0;
+			hposition_offset:=0;
 			for i:=0 to 20 do
 			begin
 				newlms:=SCREEN_GAME + (SCREENWIDTH * i);
-				dpoke(DISPLAY_LIST_GAME + (3 * i) + 2 , newlms);
+				dpoke(DISPLAY_LIST_GAME + hposition_offset + 2 , newlms);
+				Inc(hposition_offset,3);
 			end;	
 		end
 		else
 		// coarse scroll  
 		begin
+			hposition_offset:=0;
 			for i:=0 to 20 do
 			begin
-				newlms:=dpeek(DISPLAY_LIST_GAME + (3 * i + 2));
+				newlms:=dpeek(DISPLAY_LIST_GAME + hposition_offset + 2);
 				inc(newlms);
-				dpoke(DISPLAY_LIST_GAME + (3 * i) + 2 , newlms);
+				dpoke(DISPLAY_LIST_GAME + hposition_offset + 2 , newlms);
+				Inc(hposition_offset,3);
 			end;
 		end;
 
