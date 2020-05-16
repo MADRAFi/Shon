@@ -51,35 +51,6 @@ const
 		$FC,$FC,$FC,$FC,$FC,$00
 	);
 
-	// c0_Game: array [0..19] of byte = (
-	// 	$8C,$8A,$88,$86,$84,$82,$80,$00,
-    //     $02,$04,$06,$08,$0A,$0c,$00,$00,
-    //     $00,$00,$00,$00
-	// );
-
-	// c1_Game: array [0..19] of byte = (
-	// 	$14,$14,$14,$14,$14,$14,$14,$14,
-	// 	$14,$14,$14,$14,$14,$14,$14,$14,
-	// 	$D8,$D8,$D8,$D8,$D8,$D8,$D8,$D8,
-	// 	$D8,$D8,$D8,$D8,$D8,$00
-	// );
-
-	// c2_Game: array [0..19] of byte = (
-	// 	$1C,$1C,$1C,$1C,$1C,$1C,$1C,$1C,
-	// 	$8E,$1C,$1C,$1C,$1C,$1C,$1C,$1C,
-	// 	$DC,$DC,$DC,$DC,$DC,$DC,$DC,$DC,
-	// 	$DC,$DC,$DC,$DC,$DC,$00
-	// );
-
-	// c3_Game: array [0..19] of byte = (
-	// 	$0E,$0E,$8E,$8C,$8A,$86,$84,$82,
-	// 	$80,$00,$02,$04,$06,$08,$0A,$0C,
-	// 	$FC,$FC,$FC,$FC,$FC,$FC,$FC,$FC,
-	// 	$FC,$FC,$FC,$FC,$FC,$00
-	// );
-
-
-
 
 {$r resources.rc}               // including resource files with all assets
 {$i types.inc}                  // including defined type
@@ -89,9 +60,14 @@ var
     music: Boolean;
 
     msx: TRMT;
-    old_vbl,old_dli:pointer;
+    old_vbl,old_dli:Pointer;
     x: Byte; // accessory variable in loops
+    i: Byte;
+    hposition: Byte;
+    hscroll_count: Byte;
 
+    newlms: Word;
+    lms: Word;
 
 
 
@@ -110,28 +86,33 @@ begin
   CRT_Write(s);
 end;
 
-procedure print_game( x: Byte; y: Byte; s: String);overload;
-// prints string at x,y position in game area
-begin
-  CRT_Init(SCREEN_GAME,48,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(x,y);
-  CRT_Write(s);
+// procedure print_game( x: Byte; y: Byte; s: String);overload;
+// // prints string at x,y position in game area
+// begin
+//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+//   CRT_GotoXY(x,y);
+//   CRT_Write(s);
+// end;
 
-  CRT_GotoXY(5,10);
-  CRT_Put(68+64);CRT_Write('=>'~);CRT_Write(Chr(68+64));
-end;
-
-procedure print_game( x: Byte; y: Byte; b: Byte);overload;
+procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
-  CRT_Init(SCREEN_GAME,48,21);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY(x,y);
-  CRT_Write(chr(b));
-//   CRT_GotoXY(x,y+1);
-//   CRT_Write(chr(66));
+//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
+//   CRT_GotoXY(48+4 + hscroll_count,y);
+//   CRT_Write(chr(b));
+//   CRT_GotoXY(4+hscroll_count,y);
+//   CRT_Write(chr(b));
+     DPoke(SCREEN_GAME + hscroll_count + (MAXWIDTH * y),b);
 end;
 
-
+procedure WaitFrame;
+begin
+     asm {
+          lda 20
+          cmp 20
+          beq *-2
+     };
+end;
 
 // -----------------------------------------------------------------------------
 
@@ -141,7 +122,7 @@ procedure show_title;
 begin
     SetIntVec(iVBL, @vbl_title);
     SetIntVec(iDLI, @dli_title);
-    // sdlstl := word(@dlist_title);	// ($230) = @dlist_title, New DLIST Program
+
 
     // assign display list to TITLE screen
     SDLSTL := DISPLAY_LIST_TITLE;
@@ -165,6 +146,8 @@ procedure show_game;
    displays game screen
 *)
 begin
+    hposition:=4;
+    hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -176,25 +159,30 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-    fillbyte(pointer(SCREEN_GAME), 792, 0);    // size 720 (40 x 18 chars);
+    fillbyte(pointer(SCREEN_GAME), 2048, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
-    //starting position of hscrol
-    ATARI.hscrol:=15;
-
-    color1:=$0e;
-    print_game(0,9,'Terrain test'~);
-
-    // for x:=5 to 10 do
-    // begin
-    //     print_game(x,11,77);
-    // end;
     
+    color1:=$0e;
+
+
+    // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
 
     repeat
-        pause;pause;
+        WaitFrame;
+        // pause;
+
+        if hposition = 0 then
+        begin
+            //drawing new elements
+            for x:=0 to 20 do
+            begin
+                print_game(16,77);
+                // print_game(2,x,x);
+            end;
+        end;
     until keypressed;
 
     //temporarly to test loop
@@ -231,11 +219,7 @@ begin
     nmien := $c0;			// $D40E = $C0, Enable DLI
     
 (*  your code goes here *)
-    // clearing up screen memory space
-    // size depends on display list dlist_game.asm
-
-
-       
+     
     music:=false;    
     gamestate:= GAMEINPROGRESS; // NEWGAME;
 
