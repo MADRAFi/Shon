@@ -51,35 +51,6 @@ const
 		$FC,$FC,$FC,$FC,$FC,$00
 	);
 
-	// c0_Game: array [0..19] of byte = (
-	// 	$8C,$8A,$88,$86,$84,$82,$80,$00,
-    //     $02,$04,$06,$08,$0A,$0c,$00,$00,
-    //     $00,$00,$00,$00
-	// );
-
-	// c1_Game: array [0..19] of byte = (
-	// 	$14,$14,$14,$14,$14,$14,$14,$14,
-	// 	$14,$14,$14,$14,$14,$14,$14,$14,
-	// 	$D8,$D8,$D8,$D8,$D8,$D8,$D8,$D8,
-	// 	$D8,$D8,$D8,$D8,$D8,$00
-	// );
-
-	// c2_Game: array [0..19] of byte = (
-	// 	$1C,$1C,$1C,$1C,$1C,$1C,$1C,$1C,
-	// 	$8E,$1C,$1C,$1C,$1C,$1C,$1C,$1C,
-	// 	$DC,$DC,$DC,$DC,$DC,$DC,$DC,$DC,
-	// 	$DC,$DC,$DC,$DC,$DC,$00
-	// );
-
-	// c3_Game: array [0..19] of byte = (
-	// 	$0E,$0E,$8E,$8C,$8A,$86,$84,$82,
-	// 	$80,$00,$02,$04,$06,$08,$0A,$0C,
-	// 	$FC,$FC,$FC,$FC,$FC,$FC,$FC,$FC,
-	// 	$FC,$FC,$FC,$FC,$FC,$00
-	// );
-
-
-
 
 {$r resources.rc}               // including resource files with all assets
 {$i types.inc}                  // including defined type
@@ -94,8 +65,7 @@ var
     i: Byte;
     hposition: Byte;
     hscroll_count: Byte;
-    // pdlist: Pointer; 
-	// lms: array[0..20] of Word;
+
     newlms: Word;
 
 
@@ -127,10 +97,10 @@ procedure print_game(y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-  CRT_GotoXY((SCREENWIDTH div 2 ) + 4 + hscroll_count,y);
+  CRT_GotoXY(48+4 + hscroll_count,y);
   CRT_Write(chr(b));
-  CRT_GotoXY(4+hscroll_count,y);
-  CRT_Write(chr(b));
+//   CRT_GotoXY(4+hscroll_count,y);
+//   CRT_Write(chr(b));
 end;
 
 procedure WaitFrame;
@@ -150,7 +120,7 @@ procedure show_title;
 begin
     SetIntVec(iVBL, @vbl_title);
     SetIntVec(iDLI, @dli_title);
-    // sdlstl := word(@dlist_title);	// ($230) = @dlist_title, New DLIST Program
+
 
     // assign display list to TITLE screen
     SDLSTL := DISPLAY_LIST_TITLE;
@@ -190,16 +160,11 @@ begin
     fillbyte(pointer(SCREEN_GAME), 2048, 0);    // size 720 (40 x 18 chars);
     fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
 
-    //starting position of hscrol
-    // ATARI.hscrol:=15;
-    // hposition:=3;
-
     
     color1:=$0e;
+
+
     // print_game(20,12,'Terrain test'~);
-
-
-    
     print_bottom(0,strings[1]);
 
 
@@ -252,11 +217,7 @@ begin
     nmien := $c0;			// $D40E = $C0, Enable DLI
     
 (*  your code goes here *)
-    // clearing up screen memory space
-    // size depends on display list dlist_game.asm
-
-
-       
+     
     music:=false;    
     gamestate:= GAMEINPROGRESS; // NEWGAME;
 

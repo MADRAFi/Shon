@@ -59,11 +59,11 @@ begin
 	if (hposition = 0) then
   	begin
      	hposition:=4;
-	  	// coarse scroll  
+
 		Inc(hscroll_count);
   	
 		// reset LMS to default
-		If hscroll_count = SCREENWIDTH then
+		If hscroll_count = 48 then
 	  	begin
 			hscroll_count:=0;
 			for i:=0 to 20 do
@@ -73,6 +73,7 @@ begin
 			end;	
 		end
 		else
+		// coarse scroll  
 		begin
 			for i:=0 to 20 do
 			begin
