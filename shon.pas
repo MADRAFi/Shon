@@ -94,19 +94,40 @@ begin
   CRT_Write(b);CRT_Write('  '~);
 end;
 
-// procedure print_game( x: Byte; y: Byte; s: String);overload;
-// // prints string at x,y position in game area
-// begin
-//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-//   CRT_GotoXY(x,y);
-//   CRT_Write(s);
-// end;
-
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
      DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x,b);
 end;
+
+procedure print_game(x: Byte; y: Byte; c: Char);overload;
+// prints byte at x,y position in game area
+begin
+     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, byte(c));
+end;
+
+procedure print_game(x: Byte; y: Byte; s: String);overload;
+// prints byte at x,y position in game area
+var
+    size: Byte;
+begin
+    size:=byte(s[0]);
+    for i:=1 to size do
+    begin
+        DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
+    end;    
+end;
+procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
+// prints streight line equal to n at x,y position in game area
+
+begin
+    for i:=0 to n do
+    begin
+        print_game(x+i, y, sign);
+        // DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, sign);
+    end;    
+end;
+
 
 procedure WaitFrame;
 begin
@@ -162,8 +183,8 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-    fillbyte(pointer(SCREEN_GAME), 2048, 0);    // size 720 (40 x 18 chars);
-    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
+    fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
+    fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
     
     color1:=$0e;
@@ -172,9 +193,15 @@ begin
     // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
+    print_game(12, 10, FRAMEINV); print_line(13,10,15,FRAMEINV); print_game(28, 10, FRAMEINV);
+    print_game(12, 11, FRAMEINV); print_game(28, 11, FRAMEINV);
+    print_game(12, 12, FRAMEINV); print_game(15, 12, 'GET READY'~); print_game(28, 12, FRAMEINV);
+    print_game(12, 13, FRAMEINV); print_game(28, 13, FRAMEINV);
+    print_game(12, 14, FRAMEINV); print_line(13,14,15,FRAMEINV); print_game(28, 14, FRAMEINV);
+
     for x:=0 to 39 do
     begin
-        print_game(x, 16,33);
+        print_game(x, 18,'#'~);
     end;
 
 
