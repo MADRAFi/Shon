@@ -78,12 +78,20 @@ var
 // auxiliary procedures
 
 
-procedure print_bottom( x: Byte; s: String);
+procedure print_bottom( x: Byte; s: String);overload;
 // prints string at x position on bottom row (1 line)
 begin
   CRT_Init(SCREEN_BOTTOM,40,1);
   CRT_GotoXY(x,0);
   CRT_Write(s);
+end;
+
+procedure print_bottom( x: Byte; b: Byte);overload;
+// prints string at x position on bottom row (1 line)
+begin
+  CRT_Init(SCREEN_BOTTOM,40,1);
+  CRT_GotoXY(x,0);
+  CRT_Write(b);CRT_Write('  '~);
 end;
 
 // procedure print_game( x: Byte; y: Byte; s: String);overload;
@@ -94,15 +102,10 @@ end;
 //   CRT_Write(s);
 // end;
 
-procedure print_game(y: Byte; b: Byte);overload;
+procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
-//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-//   CRT_GotoXY(48+4 + hscroll_count,y);
-//   CRT_Write(chr(b));
-//   CRT_GotoXY(4+hscroll_count,y);
-//   CRT_Write(chr(b));
-     DPoke(SCREEN_GAME + hscroll_count + (MAXWIDTH * y),b);
+     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x,b);
 end;
 
 procedure WaitFrame;
@@ -169,20 +172,15 @@ begin
     // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
+    for x:=0 to 39 do
+    begin
+        print_game(x, 16,33);
+    end;
+
 
     repeat
         WaitFrame;
-        // pause;
-
-        if hposition = 0 then
-        begin
-            //drawing new elements
-            for x:=0 to 20 do
-            begin
-                print_game(16,77);
-                // print_game(2,x,x);
-            end;
-        end;
+        print_bottom(20,hscroll_count);
     until keypressed;
 
     //temporarly to test loop

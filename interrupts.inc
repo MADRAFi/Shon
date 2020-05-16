@@ -59,24 +59,24 @@ begin
 	if (hposition = 0) then
   	begin
      	hposition := 4;
-	  	// coarse scroll  
 		Inc(hscroll_count);
   	
-		// reset LMS to default
         lms := DISPLAY_LIST_GAME + 2;
 		If hscroll_count = MAXWIDTH then
 	  	begin
+		  	// reset LMS to default
 			hscroll_count:=0;
             newlms:=SCREEN_GAME + MAXWIDTH;
 			for i:=0 to 20 do
 			begin
 				dpoke(lms, newlms);
 				Inc(newlms,MAXWIDTH);
-                Inc(lms,3)
+                Inc(lms,3);
 			end;	
 		end
 		else
 		begin
+			// coarse scroll  
 			for i:=0 to 20 do
 			begin
 				newlms:=dpeek(lms);
