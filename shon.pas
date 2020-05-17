@@ -61,17 +61,26 @@ var
 
     msx: TRMT;
     old_vbl,old_dli:Pointer;
-    x: Byte; // accessory variable in loops
+
+    // accessory variables in loops
+    x: Byte; 
     i: Byte;
+
+    // variables used for scroll
     hposition: Byte;
     hscroll_count: Byte;
-
     newlms: Word;
     lms: Word;
 
+    // terrain positions
+    posX: Byte;
+    posY: Byte;
 
 
-{$i 'strings.inc'}              // including strings
+    // time counter
+    time: Word;
+
+{$i 'strings.inc'}
 {$i interrupts.inc}
 
 // -----------------------------------------------------------------------------
@@ -94,31 +103,138 @@ begin
   CRT_Write(b);CRT_Write('  '~);
 end;
 
-// procedure print_game( x: Byte; y: Byte; s: String);overload;
-// // prints string at x,y position in game area
-// begin
-//   CRT_Init(SCREEN_GAME,SCREENWIDTH,SCREENHEIGHT);      // 48 x 21 is size of screen with scroll (+ 8 bytes more)
-//   CRT_GotoXY(x,y);
-//   CRT_Write(s);
-// end;
-
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in game area
 begin
      DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x,b);
 end;
 
+procedure print_game(x: Byte; y: Byte; c: Char);overload;
+// prints byte at x,y position in game area
+begin
+     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, byte(c));
+end;
+
+procedure clear_game;
+// clears game screen
+begin
+    //  DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, 0);
+    // fillbyte(pointer(SCREEN_GAME), (MAXWIDTH div 2 ) * MAXHEIGHT,0);
+    fillbyte(pointer(SCREEN_GAME), $900, 0);
+end;
+
+procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// clears box sizex,sizey at x,y in game screen
+begin
+    for i:=0 to sizeY - 1 do
+    begin
+        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + (MAXWIDTH div 2) + x), sizeX, 0);
+    end;
+end;
+
+procedure print_game(x: Byte; y: Byte; s: String);overload;
+// prints byte at x,y position in game area
+begin
+    for i:=1 to byte(s[0]) do
+    begin
+        DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
+    end;    
+end;
+
+procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
+// prints streight line equal to n at x,y position in game area
+begin
+    for i:=0 to n - 1 do
+    begin
+        print_game(x + i, y, sign);
+    end;    
+end;
+
+procedure print_box(x: Byte; y: Byte; s: String; txtcolor: Byte);
+// draws a box at x,y position with a text inside and using c as color
+const
+    frmcolor = $0e;     // color used for frame drawing
+
+begin
+    color1:=frmcolor;
+    print_line(x, y, byte(s[0]) + 8, SIGNFRAMEINV);
+    print_game(x, y + 1, SIGNFRAMEINV); print_game(x + byte(s[0]) + 7, y + 1, SIGNFRAMEINV);
+    print_game(x, y + 2, SIGNFRAMEINV); 
+    color1:=txtcolor;                   
+    print_game(x + 3, y + 2, s);
+    color1:=frmcolor;
+    print_game(x + byte(s[0]) + 7, y + 2, SIGNFRAMEINV);
+    print_game(x, y + 3, SIGNFRAMEINV); print_game(x + byte(s[0]) + 7, y + 3, SIGNFRAMEINV);
+    print_line(x, y + 4, byte(s[0]) + 8, SIGNFRAMEINV);
+end;
+
 procedure WaitFrame;
 begin
-     asm {
+    asm {
           lda 20
           cmp 20
           beq *-2
-     };
+    };
 end;
+
+procedure Wait(s:Byte);
+// it waits s seconds
+begin
+    repeat
+        waitframe;
+    until s = time div 60;
+end;
+
 
 // -----------------------------------------------------------------------------
 
+
+
+procedure terrain;
+(*
+   generates terrain
+*)
+var
+    tile, prev_tile: TTerrain;
+begin
+    tile:= PLANE; //Random(TILEMAX);
+    print_game(posX, posY, tile);
+    Inc(posX);
+    // if tile = prev_tile then
+    // begin
+    //     if tile = UP then
+    //     begin
+    //         print_game(posX+1, posY, SIGNPLANERIGHT);
+    //         Dec(posY);
+    //     end;
+    //     if tile = DOWN then
+    //     begin
+    //         print_game(posX-1, posY, SIGNPLANELEFT);
+    //         Inc(posY);
+    //     end;
+    // end
+    // else
+    // begin
+    //     if (tile = UP) and (prev_tile = PLANE) then
+    //     begin
+    //         Dec(posY);
+    //     end;
+    //     if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
+    // end;
+
+    prev_tile:=tile;
+    If posX = MAXWIDTH div 2 then
+    begin
+        posX:= 0;
+    end;
+
+    // if posX > 4 then
+    // begin
+    //     clear_box(posX, 0, 1, MAXHEIGHT);
+    // end;    
+end;
+
+// -----------------------------------------------------------------------------
 
 procedure show_title;
 // Procedure to display title screen on start
@@ -137,7 +253,7 @@ begin
     
     repeat
         pause;
-    until (consol = CN_START) or (strig0 = 0 ); 
+    until (consol = CN_START) or (strig0 = 0); 
     gamestate:=GAMEINPROGRESS;
 end;
 
@@ -162,8 +278,8 @@ begin
     chbas:= Hi(CHARSET_GAME);
 
 
-    fillbyte(pointer(SCREEN_GAME), 2048, 0);    // size 720 (40 x 18 chars);
-    fillbyte(pointer(SCREEN_BOTTOM), 40, 0);   // size 40 (40 x 1 chars);
+    fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
+    fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
     
     color1:=$0e;
@@ -172,21 +288,24 @@ begin
     // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
-    for x:=0 to 39 do
-    begin
-        print_game(x, 16,33);
-    end;
+    print_box(12, 10, strings[3],$0e);
+    // setting starting position for terrain
+    posX:=0;
+    posY:=MAXHEIGHT;
 
+    Wait(6);
+    clear_box(12, 10, 18, 5);
 
+    // print_bottom(30,'DONE'~);
     repeat
         WaitFrame;
-        print_bottom(20,hscroll_count);
+        terrain;
+        // print_bottom(20,'  '~);print_bottom(20,hscroll_count);
     until keypressed;
 
     //temporarly to test loop
     gamestate:= GAMEOVER
 end;
-
 
 
 

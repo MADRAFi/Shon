@@ -54,11 +54,13 @@ begin
 	asm {
 		phr 				; store registers
 		};
-
+	Inc(time);
 	if music then msx.play;
+
+
 	if (hposition = 0) then
   	begin
-     	hposition := 4;
+
 		Inc(hscroll_count);
   	
         lms := DISPLAY_LIST_GAME + 2;
@@ -85,12 +87,10 @@ begin
                 Inc(lms,3)
 			end;
 		end;
-
+     	hposition := 4;				// setting to 4 so it will be dec to 3 in next step and we want register to be [3 2 1 0]
 	end;
-	
 	ATARI.hscrol:=hposition;
 	dec(hposition);
- 	
 
 	asm {
 		lda #<dli_game1     ; point to second DLI

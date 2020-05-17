@@ -21,10 +21,25 @@ CHARSET_TITLE1 = $9C00;
 CHARSET_TITLE2 = CHARSET_TITLE1 + $400;         // Font size is 1KB which is $400 in hex
 CHARSET_TITLE3 = CHARSET_TITLE2 + $400;
 CHARSET_GAME = CHARSET_TITLE3 + $400;
-                          
-// ;*** and here goes all other stuff
+
+////////////////////////////////////////////////////////////////////////////////////////////////////                          
+// and here goes all other stuff
 
 NONE = $ff;
 
 MAXWIDTH = 96;
 MAXHEIGHT = 21;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TILEMAX = 3;
+SIGNUP = 70;
+SIGNDOWN = 71;
+SIGNPLANE = 77;
+
+SIGNPLANELEFT = 14;
+SIGNPLANERIGHT = 15;
+SIGNFRAME = 10;
+SIGNFRAMEINV = 138;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
