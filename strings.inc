@@ -1,5 +1,6 @@
-strings: array [0..2] of String = (
+strings: array [0..3] of String = (
     'Shon v1'~,
     'Score: '~,
-    ' Press any key '*~
+    ' Press any key '*~,
+    'GET READY'~
 );
