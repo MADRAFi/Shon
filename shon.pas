@@ -123,35 +123,55 @@ begin
     fillbyte(pointer(SCREEN_GAME), $900, 0);
 end;
 
+procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// clears box sizex,sizey at x,y in game screen
+begin
+    for i:=0 to sizeY - 1 do
+    begin
+        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + (MAXWIDTH div 2) + x), sizeX, 0);
+    end;
+end;
+
 procedure print_game(x: Byte; y: Byte; s: String);overload;
 // prints byte at x,y position in game area
-var
-    size: Byte;
 begin
-    size:=byte(s[0]);
-    for i:=1 to size do
+    for i:=1 to byte(s[0]) do
     begin
         DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
     end;    
 end;
+
 procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
 // prints streight line equal to n at x,y position in game area
-
 begin
-    for i:=0 to n do
+    for i:=0 to n-1 do
     begin
         print_game(x+i, y, sign);
     end;    
 end;
 
+procedure print_box(x: Byte; y: Byte; s: String; txtcolor: Byte);
+// draws a box at x,y position with a text inside and using c as color
+const
+    frmcolor = $0e;     // color used for frame drawing
+
+begin
+    color1:=frmcolor;
+    print_game(x, y, SIGNFRAMEINV);     print_line(x + 1, y, x + 4, SIGNFRAMEINV);              print_game(x + byte(s[0]) + 8, y, SIGNFRAMEINV);
+    print_game(x, y + 1, SIGNFRAMEINV); print_game(x + byte(s[0]) + 8, y + 1, SIGNFRAMEINV);
+    print_game(x, y + 2, SIGNFRAMEINV); 
+    color1:=txtcolor;                   print_game(x + 3, y + 2, s); color1:=frmcolor;          print_game(x + byte(s[0]) + 8, y + 2, SIGNFRAMEINV);
+    print_game(x, y + 3, SIGNFRAMEINV); print_game(x + byte(s[0]) + 8, y + 3, SIGNFRAMEINV);
+    print_game(x, y + 4, SIGNFRAMEINV); print_line(x + 1, y + 4, x + 4, SIGNFRAMEINV);          print_game(x + byte(s[0]) + 8, y + 4, SIGNFRAMEINV);
+end;
 
 procedure WaitFrame;
 begin
-     asm {
+    asm {
           lda 20
           cmp 20
           beq *-2
-     };
+    };
 end;
 
 procedure Wait(s:Byte);
@@ -162,20 +182,9 @@ begin
     until s = time div 60;
 end;
 
-// -----------------------------------------------------------------------------
-procedure print_box(x: Byte; y: Byte; s: String; txtcolor: Byte);
-// draws a box at x,y position with a text inside and using c as color
-const
-    frmcolor = $0e;     // color used for frame drawing
 
-begin
-    color1:=frmcolor;
-    print_game(x, y, SIGNFRAMEINV); print_line(x+1,y,x+3,SIGNFRAMEINV); print_game(x+byte(s[0])+7, y, SIGNFRAMEINV);
-    print_game(x, y+1, SIGNFRAMEINV); print_game(x+byte(s[0])+7, y+1, SIGNFRAMEINV);
-    print_game(x, y+2, SIGNFRAMEINV); color1:=txtcolor; print_game(x+3, y+2, s); color1:=frmcolor; print_game(x+byte(s[0])+7, y+2, SIGNFRAMEINV);
-    print_game(x, y+3, SIGNFRAMEINV); print_game(x+byte(s[0])+7, y+3, SIGNFRAMEINV);
-    print_game(x, y+4, SIGNFRAMEINV); print_line(x+1,y+4,x+3,SIGNFRAMEINV); print_game(x+byte(s[0])+7, y+4, SIGNFRAMEINV);
-end;
+// -----------------------------------------------------------------------------
+
 
 
 procedure terrain;
@@ -268,19 +277,15 @@ begin
     // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
-    // print_game(12, 10, SIGNFRAMEINV); print_line(13,10,15,SIGNFRAMEINV); print_game(28, 10, SIGNFRAMEINV);
-    // print_game(12, 11, SIGNFRAMEINV); print_game(28, 11, SIGNFRAMEINV);
-    // print_game(12, 12, SIGNFRAMEINV); print_game(15, 12, 'GET READY'~); print_game(28, 12, SIGNFRAMEINV);
-    // print_game(12, 13, SIGNFRAMEINV); print_game(28, 13, SIGNFRAMEINV);
-    // print_game(12, 14, SIGNFRAMEINV); print_line(13,14,15,SIGNFRAMEINV); print_game(28, 14, SIGNFRAMEINV);
     print_box(12, 10, strings[3],$0e);
     // setting starting position for terrain
     posX:=0;
     posY:=MAXHEIGHT;
 
     Wait(6);
-    clear_game;
-    print_bottom(30,'DONE'~);
+    clear_box(12, 10, 18, 5);
+
+    // print_bottom(30,'DONE'~);
     repeat
         WaitFrame;
         // print_bottom(20,'  '~);print_bottom(20,hscroll_count);
