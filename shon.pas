@@ -144,9 +144,9 @@ end;
 procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
 // prints streight line equal to n at x,y position in game area
 begin
-    for i:=0 to n-1 do
+    for i:=0 to n - 1 do
     begin
-        print_game(x+i, y, sign);
+        print_game(x + i, y, sign);
     end;    
 end;
 
@@ -157,12 +157,15 @@ const
 
 begin
     color1:=frmcolor;
-    print_game(x, y, SIGNFRAMEINV);     print_line(x + 1, y, x + 4, SIGNFRAMEINV);              print_game(x + byte(s[0]) + 8, y, SIGNFRAMEINV);
-    print_game(x, y + 1, SIGNFRAMEINV); print_game(x + byte(s[0]) + 8, y + 1, SIGNFRAMEINV);
+    print_line(x, y, byte(s[0]) + 8, SIGNFRAMEINV);
+    print_game(x, y + 1, SIGNFRAMEINV); print_game(x + byte(s[0]) + 7, y + 1, SIGNFRAMEINV);
     print_game(x, y + 2, SIGNFRAMEINV); 
-    color1:=txtcolor;                   print_game(x + 3, y + 2, s); color1:=frmcolor;          print_game(x + byte(s[0]) + 8, y + 2, SIGNFRAMEINV);
-    print_game(x, y + 3, SIGNFRAMEINV); print_game(x + byte(s[0]) + 8, y + 3, SIGNFRAMEINV);
-    print_game(x, y + 4, SIGNFRAMEINV); print_line(x + 1, y + 4, x + 4, SIGNFRAMEINV);          print_game(x + byte(s[0]) + 8, y + 4, SIGNFRAMEINV);
+    color1:=txtcolor;                   
+    print_game(x + 3, y + 2, s);
+    color1:=frmcolor;
+    print_game(x + byte(s[0]) + 7, y + 2, SIGNFRAMEINV);
+    print_game(x, y + 3, SIGNFRAMEINV); print_game(x + byte(s[0]) + 7, y + 3, SIGNFRAMEINV);
+    print_line(x, y + 4, byte(s[0]) + 8, SIGNFRAMEINV);
 end;
 
 procedure WaitFrame;
@@ -220,7 +223,15 @@ begin
     // end;
 
     prev_tile:=tile;
-    If posX = MAXWIDTH then posX:= 0;
+    If posX = MAXWIDTH div 2 then
+    begin
+        posX:= 0;
+    end;
+
+    // if posX > 4 then
+    // begin
+    //     clear_box(posX, 0, 1, MAXHEIGHT);
+    // end;    
 end;
 
 // -----------------------------------------------------------------------------
@@ -288,6 +299,7 @@ begin
     // print_bottom(30,'DONE'~);
     repeat
         WaitFrame;
+        terrain;
         // print_bottom(20,'  '~);print_bottom(20,hscroll_count);
     until keypressed;
 
