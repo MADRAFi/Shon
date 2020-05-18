@@ -80,6 +80,9 @@ var
     // time counter
     time: Word;
 
+    tileset: array [0..TILEMAX-1] of Byte = (SIGNUP,SIGNPLANE,SIGNDOWN);
+
+    d: Byte = 15; // debug
 {$i 'strings.inc'}
 {$i interrupts.inc}
 
@@ -106,21 +109,31 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-     DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
-     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+    // if hscroll_count > MAXWIDTH div 2 then
+    // begin 
+        // DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
+    //     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+    // end
+    // else DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
+    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, b);
 end;
 
-procedure print_game(x: Byte; y: Byte; c: Char);overload;
-// prints byte at x,y position in left and right game area
-begin
-     DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, byte(c));
-     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, byte(c));
-end;
+// procedure print_game(x: Byte; y: Byte; c: Char);overload;
+// // prints byte at x,y position in left and right game area
+// begin
+//     if hscroll_count > MAXWIDTH div 2 then
+//     begin
+//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + x+4, byte(c));
+//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
+//     end
+//     else DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
+
+// end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in right game area
 begin
-     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
 end;
 
 procedure print_right(x: Byte; y: Byte; s: String);overload;
@@ -193,7 +206,18 @@ begin
     until s = time div 60;
 end;
 
-
+function RandomTile : TTerrain;
+begin
+    // randomize;
+    x:=Random(TILEMAX);
+    case x of
+        0: Result:=UP;
+        1: Result:=PLANE;
+        2: Result:=DOWN;
+        // 3: Result:=PLANE;
+        // 4: Result:=PLANE;
+    end;
+end;
 // -----------------------------------------------------------------------------
 
 
@@ -204,42 +228,68 @@ procedure terrain;
 *)
 var
     tile, prev_tile: TTerrain;
+
 begin
-    tile:= PLANE; //Random(TILEMAX);
-    if hposition > MAXWIDTH div 2 then
-    begin
-        print_game(posX, posY, tile);
+    tile:=RandomTile; //Random(TILEMAX);
+    
+    // Bottom limits check
+    If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
+    if (posY+1 >= MAXHEIGHT) and (tile = DOWN) then tile:=PLANE;
+    
+    // Top limits check TODO
+    // If posY > ROWLIMIT then tile:=UP;
+    //
+    
+    // print_bottom(d,tile);
+    // inc(d,2);
 
 
-        // Inc(posX);
-        // if tile = prev_tile then
-        // begin
-        //     if tile = UP then
-        //     begin
-        //         print_game(posX+1, posY, SIGNPLANERIGHT);
-        //         Dec(posY);
-        //     end;
-        //     if tile = DOWN then
-        //     begin
-        //         print_game(posX-1, posY, SIGNPLANELEFT);
-        //         Inc(posY);
-        //     end;
-        // end
-        // else
-        // begin
-        //     if (tile = UP) and (prev_tile = PLANE) then
-        //     begin
-        //         Dec(posY);
-        //     end;
-        //     if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
-        // end;
+    if tile = prev_tile then
+    begin 
+        if tile = UP then
+        begin
+            print_game(posX + 1, posY, SIGNPLANERIGHT);
+            Dec(posY);
+        end;
+        if tile = DOWN then
+        begin
+            print_game(posX, posY + 1, SIGNPLANELEFT);
+            Inc(posY);
+        end;
+    end
+    else
+    begin  
+        if (tile = UP) and (prev_tile = PLANE) then
+        begin
+            print_game(posX + 1, posY, SIGNPLANERIGHT);
+            Dec(posY);
+        end;
+        if (tile = PLANE) and (prev_tile = DOWN) then
+        begin
+            Inc(posY);
+            print_game(posX, posY, SIGNPLANELEFT);
+        end;
+        if (tile = UP) and (prev_tile = DOWN) then
+        begin
+            print_game(posX, posY + 1, SIGNPLANELEFT);
+            print_game(posX+1, posY + 1, SIGNPLANERIGHT);    
+        end;
+        // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
     end;
+
+    if posX < 40 then
+    begin
+        Inc(posX);
+    end    
+    else
+    begin
+//     // clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
+        posX:= 0;
+    end;
+
+    print_game(posX, posY, tileset[tile]);
     prev_tile:=tile;
-    // If posX = MAXWIDTH then
-    // begin
-    //     // clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
-    //     posX:= 0;
-    // end;
+
 
     // if posX > 4 then
     // begin
@@ -301,19 +351,20 @@ begin
     // print_game(20,12,'Terrain test'~);
     print_bottom(0,strings[1]);
 
-    print_box_right(12, 10, strings[3],$0e);
+    // print_box_right(12, 10, strings[3],$0e);
+    // Wait(6);
+    // clear_box_right(12, 10, 18, 5);
+
+    // print_bottom(30,'DONE'~);
+    
     // setting starting position for terrain
     posX:=0; //MAXWIDTH div 2;
     posY:=MAXHEIGHT;
-
-    Wait(6);
-    clear_box_right(12, 10, 18, 5);
-
-    // print_bottom(30,'DONE'~);
+    
     repeat
         WaitFrame;
-        Terrain;
-        // print_bottom(20,'  '~);print_bottom(20,hscroll_count);
+        if posX< 40 then Terrain;
+        print_bottom(10,'  '~);print_bottom(10,hscroll_count);
     until keypressed;
 
     //temporarly to test loop
