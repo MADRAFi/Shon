@@ -80,7 +80,7 @@ var
     // time counter
     time: Word;
 
-    tileset: array [0..TILEMAX-1] of Byte = (SIGNUP,SIGNPLANE,SIGNDOWN);
+    tileset: array [0..TILEMAX-1] of Byte = (SIGNUP, SIGNPLANE, SIGNDOWN, SIGNPLANE);
 
     d: Byte = 15; // debug
 {$i 'strings.inc'}
@@ -189,6 +189,15 @@ begin
     end;
 end;
 
+procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// clears box sizex,sizey at x,y in game screen
+begin
+    for i:=0 to sizeY - 1 do
+    begin
+        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + x), sizeX, 64);
+    end;
+end;
+
 procedure WaitFrame;
 begin
     asm {
@@ -209,12 +218,12 @@ end;
 function RandomTile : TTerrain;
 begin
     // randomize;
-    x:=Random(TILEMAX);
+    x:=Random(0) and (TILEMAX-1);
     case x of
         0: Result:=UP;
         1: Result:=PLANE;
         2: Result:=DOWN;
-        // 3: Result:=PLANE;
+        3: Result:=PLANE;
         // 4: Result:=PLANE;
     end;
 end;
@@ -230,7 +239,8 @@ var
     tile, prev_tile: TTerrain;
 
 begin
-    tile:=RandomTile; //Random(TILEMAX);
+    // tile:=RandomTile;
+    tile:=PLANE;
     
     // Bottom limits check
     If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
@@ -277,16 +287,15 @@ begin
         // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
     end;
 
-    if posX < 40 then
+    if posX < MAXWIDTH then
     begin
         Inc(posX);
     end    
     else
     begin
-//     // clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
         posX:= 0;
     end;
-
+    // if hscroll_count = 95 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
     print_game(posX, posY, tileset[tile]);
     prev_tile:=tile;
 
@@ -299,6 +308,44 @@ end;
 
 // -----------------------------------------------------------------------------
 
+// procedure coarse_scroll;
+// (*
+//    scrolls game's area
+// *)
+
+// begin
+//     lms := DISPLAY_LIST_GAME + 2;
+//     If hscroll_count = MAXWIDTH then
+//     begin
+//         // resets LMS to default
+//         hscroll_count:=1;
+//         newlms:=SCREEN_GAME + MAXWIDTH;
+//         for i:=0 to 20 do
+//         begin
+//             dpoke(lms, newlms);
+//             Inc(newlms,MAXWIDTH);
+//             Inc(lms,3);
+//         end;	
+//     end
+//     else
+//     begin
+//     	Inc(hscroll_count);
+//         // coarse scroll
+//         if hposition=0 then
+//         begin  
+//             for i:=0 to 20 do
+//             begin
+//                 newlms:=dpeek(lms);
+//                 inc(newlms);
+//                 dpoke(lms, newlms);
+//                 Inc(lms,3);
+//             end;
+//             hposition:=3;
+//         end;
+//     end;
+//     // if hscroll_count=96 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
+//     // if hscroll_count=1 then clear_box(MAXWIDTH div 2, 0, MAXWIDTH, MAXHEIGHT);
+// end;        
 procedure show_title;
 // Procedure to display title screen on start
 begin
@@ -328,8 +375,8 @@ procedure show_game;
    displays game screen
 *)
 begin
-    hposition:=4;
-    hscroll_count:=0;
+    hposition:=3;
+    hscroll_count:=1;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -348,10 +395,10 @@ begin
     color1:=$0e;
 
 
-    // print_game(20,12,'Terrain test'~);
+    // print_right(20,8,'Terrain test'~);
     print_bottom(0,strings[1]);
 
-    // print_box_right(12, 10, strings[3],$0e);
+    print_box_right(12, 10, strings[3],$0e);
     // Wait(6);
     // clear_box_right(12, 10, 18, 5);
 
@@ -363,7 +410,8 @@ begin
     
     repeat
         WaitFrame;
-        if posX< 40 then Terrain;
+        // Terrain;
+        // coarse_scroll;
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
     until keypressed;
 
