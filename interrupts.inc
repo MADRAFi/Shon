@@ -62,6 +62,7 @@ begin
 	if (hposition = 0) then
 	begin
 		lms:= DISPLAY_LIST_GAME + 2;
+		
 		If hscroll_count = MAXWIDTH then
 		begin
 			// resets LMS to default
@@ -85,8 +86,8 @@ begin
 				dpoke(lms, newlms);
 				Inc(lms,3);
 			end;
-			hposition := 3;
 		end;
+		hposition := 3;
 	end
 	else
 	begin

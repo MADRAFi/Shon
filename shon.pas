@@ -61,7 +61,7 @@ var
 
     msx: TRMT;
     old_vbl,old_dli:Pointer;
-
+    chrctl : Byte absolute $D401;
     // accessory variables in loops
     x: Byte; 
     i: Byte;
@@ -346,7 +346,7 @@ end;
 //     // if hscroll_count=96 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
 //     // if hscroll_count=1 then clear_box(MAXWIDTH div 2, 0, MAXWIDTH, MAXHEIGHT);
 // end; 
-       
+
 procedure show_title;
 // Procedure to display title screen on start
 begin
@@ -438,8 +438,8 @@ begin
     msx.player := pointer(RMT_PLAYER_ADDRESS);
     msx.modul := pointer(RMT_MODULE_TITLE);
     msx.Init(0);
-
-
+    
+    chrctl:=$02;
     sdmctl := byte(normal or enable or missiles or players or oneline);
 
 (*  set and run vbl interrupt *)
