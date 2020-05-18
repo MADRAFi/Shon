@@ -345,7 +345,8 @@ end;
 //     end;
 //     // if hscroll_count=96 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
 //     // if hscroll_count=1 then clear_box(MAXWIDTH div 2, 0, MAXWIDTH, MAXHEIGHT);
-// end;        
+// end; 
+       
 procedure show_title;
 // Procedure to display title screen on start
 begin
