@@ -309,8 +309,8 @@ end;
 
 procedure coarse_scroll;
 begin
-    // if hposition > 0 then
-    // begin
+    if hposition = 0 then
+    begin
     	lms:= DISPLAY_LIST_GAME + 2;
 
 		If hscroll_count = MAXWIDTH then
@@ -337,7 +337,8 @@ begin
 				Inc(lms,3);
 			end;
 		end;
-    // end;
+        hposition:=4;   // will dec to 3
+    end;
 end;
 // -----------------------------------------------------------------------------
 
@@ -410,10 +411,11 @@ begin
         
         // Terrain;
         coarse_scroll;
-        dec(hposition);
+
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-        // WaitFrame;
-        pause;
+        WaitFrame;
+        dec(hposition);
+        // pause;
     until keypressed;
 
     //temporarly to test loop

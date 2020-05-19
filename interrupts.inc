@@ -59,10 +59,10 @@ begin
 
 	ATARI.hscrol:=hposition;
 	
-	if (hposition = 0) then
-	begin
-		hposition := 3;
-	end;
+	// if (hposition = 0) then
+	// begin
+	// 	hposition := 4;
+	// end;
 
 	asm {
 		lda #<dli_game1     ; point to second DLI
