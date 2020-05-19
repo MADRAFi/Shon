@@ -58,36 +58,10 @@ begin
 	if music then msx.play;
 
 	ATARI.hscrol:=hposition;
-
+	
 	if (hposition = 0) then
 	begin
-		lms:= DISPLAY_LIST_GAME + 2;
-
-		If hscroll_count = MAXWIDTH then
-		begin
-			// resets LMS to default
-			hscroll_count:=1;
-			newlms:=SCREEN_GAME + MAXWIDTH;
-			for i:=0 to 20 do
-			begin
-				dpoke(lms, newlms);
-				Inc(newlms,MAXWIDTH);
-				Inc(lms,3);
-			end;	
-		end
-		else
-		begin
-			Inc(hscroll_count);
-			// coarse scroll
-			for i:=0 to 20 do
-			begin
-				newlms:=dpeek(lms);
-				inc(newlms);
-				dpoke(lms, newlms);
-				Inc(lms,3);
-			end;
-		end;
-		hposition := 4;
+		hposition := 3;
 	end;
 
 	asm {

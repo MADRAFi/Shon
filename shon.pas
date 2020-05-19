@@ -83,6 +83,7 @@ var
     tileset: array [0..TILEMAX-1] of Byte = (SIGNUP, SIGNPLANE, SIGNDOWN, SIGNPLANE);
 
     d: Byte = 15; // debug
+
 {$i 'strings.inc'}
 {$i interrupts.inc}
 
@@ -306,46 +307,39 @@ begin
     // end;    
 end;
 
+procedure coarse_scroll;
+begin
+    // if hposition > 0 then
+    // begin
+    	lms:= DISPLAY_LIST_GAME + 2;
+
+		If hscroll_count = MAXWIDTH then
+		begin
+			// resets LMS to default
+			hscroll_count:=1;
+			newlms:=SCREEN_GAME + MAXWIDTH;
+			for i:=0 to 20 do
+			begin
+				dpoke(lms, newlms);
+				Inc(newlms,MAXWIDTH);
+				Inc(lms,3);
+			end;	
+		end
+		else
+		begin
+			Inc(hscroll_count);
+			// coarse scroll
+			for i:=0 to 20 do
+			begin
+				newlms:=dpeek(lms);
+				inc(newlms);
+				dpoke(lms, newlms);
+				Inc(lms,3);
+			end;
+		end;
+    // end;
+end;
 // -----------------------------------------------------------------------------
-
-// procedure coarse_scroll;
-// (*
-//    scrolls game's area
-// *)
-
-// begin
-//     lms := DISPLAY_LIST_GAME + 2;
-//     If hscroll_count = MAXWIDTH then
-//     begin
-//         // resets LMS to default
-//         hscroll_count:=1;
-//         newlms:=SCREEN_GAME + MAXWIDTH;
-//         for i:=0 to 20 do
-//         begin
-//             dpoke(lms, newlms);
-//             Inc(newlms,MAXWIDTH);
-//             Inc(lms,3);
-//         end;	
-//     end
-//     else
-//     begin
-//     	Inc(hscroll_count);
-//         // coarse scroll
-//         if hposition=0 then
-//         begin  
-//             for i:=0 to 20 do
-//             begin
-//                 newlms:=dpeek(lms);
-//                 inc(newlms);
-//                 dpoke(lms, newlms);
-//                 Inc(lms,3);
-//             end;
-//             hposition:=3;
-//         end;
-//     end;
-//     // if hscroll_count=96 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
-//     // if hscroll_count=1 then clear_box(MAXWIDTH div 2, 0, MAXWIDTH, MAXHEIGHT);
-// end; 
 
 procedure show_title;
 // Procedure to display title screen on start
@@ -415,10 +409,11 @@ begin
         end;
         
         // Terrain;
-        // coarse_scroll;
+        coarse_scroll;
         dec(hposition);
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-        WaitFrame;
+        // WaitFrame;
+        pause;
     until keypressed;
 
     //temporarly to test loop
