@@ -410,10 +410,15 @@ begin
     posY:=MAXHEIGHT;
     
     repeat
-        WaitFrame;
+        if d < 40 then begin 
+            print_bottom(d,hposition); inc(d,2);
+        end;
+        
         // Terrain;
         // coarse_scroll;
+        dec(hposition);
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
+        WaitFrame;
     until keypressed;
 
     //temporarly to test loop
