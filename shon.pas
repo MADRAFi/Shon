@@ -63,8 +63,9 @@ var
     old_vbl,old_dli:Pointer;
     chrctl : Byte absolute $D401;
     // accessory variables in loops
-    x: Byte; 
+    // x: Byte; 
     i: Byte;
+    vi: Byte; // itteration in vbl interrupt
 
     // variables used for scroll
     hposition: Byte;
@@ -79,6 +80,7 @@ var
 
     // time counter
     time: Word;
+    tmp: Word;
 
     tileset: array [0..TILEMAX-1] of Byte = (SIGNUP, SIGNPLANE, SIGNDOWN, SIGNPLANE);
 
@@ -110,26 +112,11 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    // if hscroll_count > MAXWIDTH div 2 then
-    // begin 
-        // DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
-    //     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
-    // end
-    // else DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
-    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, b);
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    DPoke(tmp, b);
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + 48 + x;
+    DPoke(tmp, b);
 end;
-
-// procedure print_game(x: Byte; y: Byte; c: Char);overload;
-// // prints byte at x,y position in left and right game area
-// begin
-//     if hscroll_count > MAXWIDTH div 2 then
-//     begin
-//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + x+4, byte(c));
-//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
-//     end
-//     else DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
-
-// end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in right game area
@@ -219,8 +206,8 @@ end;
 function RandomTile : TTerrain;
 begin
     // randomize;
-    x:=Random(0) and (TILEMAX-1);
-    case x of
+    i:=Random(0) and (TILEMAX-1);
+    case i of
         0: Result:=UP;
         1: Result:=PLANE;
         2: Result:=DOWN;
@@ -240,106 +227,71 @@ var
     tile, prev_tile: TTerrain;
 
 begin
-    // tile:=RandomTile;
-    tile:=PLANE;
-    
-    // Bottom limits check
-    If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
-    if (posY+1 >= MAXHEIGHT) and (tile = DOWN) then tile:=PLANE;
-    
-    // Top limits check TODO
-    // If posY > ROWLIMIT then tile:=UP;
-    //
-    
-    // print_bottom(d,tile);
-    // inc(d,2);
-
-
-    if tile = prev_tile then
-    begin 
-        if tile = UP then
-        begin
-            print_game(posX + 1, posY, SIGNPLANERIGHT);
-            Dec(posY);
-        end;
-        if tile = DOWN then
-        begin
-            print_game(posX, posY + 1, SIGNPLANELEFT);
-            Inc(posY);
-        end;
-    end
-    else
-    begin  
-        if (tile = UP) and (prev_tile = PLANE) then
-        begin
-            print_game(posX + 1, posY, SIGNPLANERIGHT);
-            Dec(posY);
-        end;
-        if (tile = PLANE) and (prev_tile = DOWN) then
-        begin
-            Inc(posY);
-            print_game(posX, posY, SIGNPLANELEFT);
-        end;
-        if (tile = UP) and (prev_tile = DOWN) then
-        begin
-            print_game(posX, posY + 1, SIGNPLANELEFT);
-            print_game(posX+1, posY + 1, SIGNPLANERIGHT);    
-        end;
-        // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
-    end;
-
-    if posX < MAXWIDTH then
+    if posX < (MAXWIDTH div 2)-1 then
     begin
+        // tile:=RandomTile;
+        tile:=PLANE;
+        
+        // Bottom limits check
+        If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
+        if (posY+1 >= MAXHEIGHT) and (tile = DOWN) then tile:=PLANE;
+        
+        // Top limits check TODO
+        // If posY > ROWLIMIT then tile:=UP;
+        //
+        
+        // print_bottom(d,tile);
+        // inc(d,2);
+
+
+        if tile = prev_tile then
+        begin 
+            if tile = UP then
+            begin
+                print_game(posX + 1, posY, SIGNPLANERIGHT);
+                Dec(posY);
+            end;
+            if tile = DOWN then
+            begin
+                print_game(posX, posY + 1, SIGNPLANELEFT);
+                Inc(posY);
+            end;
+        end
+        else
+        begin  
+            if (tile = UP) and (prev_tile = PLANE) then
+            begin
+                print_game(posX + 1, posY, SIGNPLANERIGHT);
+                Dec(posY);
+            end;
+            if (tile = PLANE) and (prev_tile = DOWN) then
+            begin
+                Inc(posY);
+                print_game(posX, posY, SIGNPLANELEFT);
+            end;
+            if (tile = UP) and (prev_tile = DOWN) then
+            begin
+                print_game(posX, posY + 1, SIGNPLANELEFT);
+                print_game(posX+1, posY + 1, SIGNPLANERIGHT);    
+            end;
+            // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
+        end;
+
+        print_game(posX, posY, tileset[tile]);
+        prev_tile:=tile;
+
         Inc(posX);
     end    
     else
     begin
         posX:= 0;
     end;
-    // if hscroll_count = 95 then clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
-    print_game(posX, posY, tileset[tile]);
-    prev_tile:=tile;
-
-
     // if posX > 4 then
     // begin
     //     clear_box(posX, 0, 1, MAXHEIGHT);
     // end;    
 end;
 
-procedure coarse_scroll;
-begin
-    if hposition = 0 then
-    begin
-    	lms:= DISPLAY_LIST_GAME + 2;
-
-		If hscroll_count = MAXWIDTH then
-		begin
-			// resets LMS to default
-			hscroll_count:=1;
-			newlms:=SCREEN_GAME + MAXWIDTH;
-			for i:=0 to 20 do
-			begin
-				dpoke(lms, newlms);
-				Inc(newlms,MAXWIDTH);
-				Inc(lms,3);
-			end;	
-		end
-		else
-		begin
-			Inc(hscroll_count);
-			// coarse scroll
-			for i:=0 to 20 do
-			begin
-				newlms:=dpeek(lms);
-				inc(newlms);
-				dpoke(lms, newlms);
-				Inc(lms,3);
-			end;
-		end;
-        hposition:=4;   // will dec to 3
-    end;
-end;
 // -----------------------------------------------------------------------------
 
 procedure show_title;
@@ -394,7 +346,7 @@ begin
     // print_right(20,8,'Terrain test'~);
     print_bottom(0,strings[1]);
 
-    print_box_right(12, 10, strings[3],$0e);
+    // print_box_right(12, 10, strings[3],$0e);
     // Wait(6);
     // clear_box_right(12, 10, 18, 5);
 
@@ -404,20 +356,26 @@ begin
     posX:=0; //MAXWIDTH div 2;
     posY:=MAXHEIGHT;
     
-    repeat
-        if d < 40 then begin 
-            print_bottom(d,hposition); inc(d,2);
+    for posY:=10 to 21 do
+    begin
+        for posX:=0 to 39 do
+        begin
+            print_game(posX,posY,posY+23);
         end;
-        
-        // Terrain;
-        coarse_scroll;
+    end;
+    wait(6);
+    // clear_box_right(0, 10, 16, 10);
 
-        print_bottom(10,'  '~);print_bottom(10,hscroll_count);
+
+    repeat
         WaitFrame;
-        dec(hposition);
-        // pause;
+        // if posX < 96 then begin 
+        // Terrain;
+        // end;
+        print_bottom(10,'  '~);print_bottom(10,hscroll_count);
+        // print_bottom(30,'  '~);print_bottom(30,posX);
     until keypressed;
-
+    
     //temporarly to test loop
     gamestate:= GAMEOVER
 end;
