@@ -7,7 +7,6 @@ shon.pas (26) Note: Local const 'C0_TITLE' not used
 shon.pas (33) Note: Local const 'C1_TITLE' not used
 shon.pas (40) Note: Local const 'C2_TITLE' not used
 shon.pas (47) Note: Local const 'C3_TITLE' not used
-shon.pas (87) Note: Local variable 'D' not used
 interrupts.inc (52) Note: Use assembler block instead pascal
 interrupts.inc (106) Note: Use assembler block instead pascal
 shon.pas (127) Note: Local proc 'PRINT_RIGHT' not used
@@ -15,9 +14,10 @@ shon.pas (145) Note: Local proc 'PRINT_BOX_RIGHT' not used
 shon.pas (163) Note: Local proc 'CLEAR_GAME' not used
 shon.pas (171) Note: Local proc 'CLEAR_BOX_RIGHT' not used
 shon.pas (180) Note: Local proc 'CLEAR_BOX' not used
+shon.pas (198) Note: Local proc 'WAIT' not used
 shon.pas (206) Note: Local func 'RANDOMTILE' not used
 shon.pas (222) Note: Local proc 'TERRAIN' not used
-433 lines compiled, 1.09 sec, 13530 tokens, 1137 idents, 400 blocks, 10 types
+466 lines compiled, 1.08 sec, 13555 tokens, 1138 idents, 401 blocks, 10 types
 17 note(s) issued
 $R RCDATA  $9C00..$9FFF 'Assets/shon_title12.f00'
 $R RCDATA  $A000..$A3FF 'Assets/shon_title12.f01'
@@ -29,16 +29,16 @@ $R RCASM   $4A00..$4A47 'dlist_game.asm'
 $R RMTPLAY $5CE0..$632A 'Assets/rmt_feat.asm'
 $R RMT     $6800..$74A0 'Assets/lastminute.rmt'
 ZPAGE: $0080..$00DA
-RTLIB: $21E4..$2407
-SYSTEM: $2447..$24D7
-CRT: $24D8..$24FB
-JOYSTICK: $24FC..$2503
-RMT: $2504..$25A2
-SYSUTILS: $25A3..$25DC
-B_CRT: $25DD..$2785
-CODE: $2000..$2CCD
-DATA: $2CCE..$3158
+RTLIB: $21E4..$23E4
+SYSTEM: $2424..$24B4
+CRT: $24B5..$24D8
+JOYSTICK: $24D9..$24E0
+RMT: $24E1..$257F
+SYSUTILS: $2580..$25B9
+B_CRT: $25BA..$2762
+CODE: $2000..$2C95
+DATA: $2C96..$311F
 Writing listing file...
 Writing object file...
-12919 lines of source assembled in 7 pass
-14141 bytes written to the object file
+12897 lines of source assembled in 6 pass
+14085 bytes written to the object file

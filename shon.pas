@@ -294,6 +294,40 @@ end;
 
 // -----------------------------------------------------------------------------
 
+procedure coarseScroll;
+begin
+    // if (hposition = 0) then
+  	begin
+        lms := DISPLAY_LIST_GAME + 2;
+		If hscroll_count = MAXWIDTH-48 then
+	  	begin
+		  	// reset LMS to default
+			hscroll_count:=0;
+            newlms:=SCREEN_GAME + MAXWIDTH;
+			for vi:=0 to 20 do
+			begin
+				dpoke(lms, newlms);
+				Inc(newlms,MAXWIDTH);
+                Inc(lms,3);
+			end;	
+		end
+		else
+		begin
+			// coarse scroll  
+			for vi:=0 to 20 do
+			begin
+				newlms:=dpeek(lms);
+				inc(newlms);
+				dpoke(lms, newlms);
+                Inc(lms,3)
+			end;
+		end;
+    Inc(hscroll_count);
+    end;
+end;
+
+
+
 procedure show_title;
 // Procedure to display title screen on start
 begin
@@ -342,8 +376,6 @@ begin
     
     color1:=$0e;
 
-
-    // print_right(20,8,'Terrain test'~);
     print_bottom(0,strings[1]);
 
     // print_box_right(12, 10, strings[3],$0e);
@@ -358,12 +390,12 @@ begin
     
     for posY:=10 to 21 do
     begin
-        for posX:=0 to 39 do
+        for posX:=0 to 47 do
         begin
             print_game(posX,posY,posY+23);
         end;
     end;
-    wait(6);
+    // wait(6);
     // clear_box_right(0, 10, 16, 10);
 
 
@@ -372,8 +404,9 @@ begin
         // if posX < 96 then begin 
         // Terrain;
         // end;
+        coarseScroll;
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-        // print_bottom(30,'  '~);print_bottom(30,posX);
+        print_bottom(d,hposition); if d< 40 then inc(d,2);
     until keypressed;
     
     //temporarly to test loop
