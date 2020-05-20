@@ -112,10 +112,11 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x;
+    DPoke(tmp, b);
     tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
     DPoke(tmp, b);
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + 48 + x;
-    DPoke(tmp, b);
+
 end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
@@ -212,7 +213,6 @@ begin
         1: Result:=PLANE;
         2: Result:=DOWN;
         3: Result:=PLANE;
-        // 4: Result:=PLANE;
     end;
 end;
 // -----------------------------------------------------------------------------
@@ -303,7 +303,7 @@ begin
 	  	begin
 		  	// reset LMS to default
 			hscroll_count:=0;
-            newlms:=SCREEN_GAME + MAXWIDTH;
+            newlms:=SCREEN_GAME;
 			for vi:=0 to 20 do
 			begin
 				dpoke(lms, newlms);
@@ -387,18 +387,26 @@ begin
     // setting starting position for terrain
     posX:=0; //MAXWIDTH div 2;
     posY:=MAXHEIGHT;
-    
-    for posY:=10 to 21 do
+
+
+    for posY:=0 to 20 do
     begin
         for posX:=0 to 47 do
         begin
-            print_game(posX,posY,posY+23);
+            print_game(posX,posY,posY+33);
         end;
     end;
     // wait(6);
     // clear_box_right(0, 10, 16, 10);
 
-
+    // hscroll_count:=0;
+    // newlms:=SCREEN_GAME + MAXWIDTH;
+    // for i:=0 to 20 do
+    // begin
+    //     dpoke(lms, newlms);
+    //     Inc(newlms,MAXWIDTH);
+    //     Inc(lms,3);
+    // end;	
     repeat
         WaitFrame;
         // if posX < 96 then begin 
