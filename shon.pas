@@ -76,7 +76,8 @@ var
     // terrain positions
     posX: Byte;
     posY: Byte;
-
+    tile: TTerrain = PLANE;
+    prev_tile: TTerrain = PLANE;
 
     // time counter
     time: Word;
@@ -112,17 +113,17 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x;
-    DPoke(tmp, b);
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-1 + x;
+    Poke(tmp, b);
     tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
-    DPoke(tmp, b);
+    Poke(tmp, b);
 
 end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in right game area
 begin
-    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+    Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
 end;
 
 procedure print_right(x: Byte; y: Byte; s: String);overload;
@@ -130,7 +131,7 @@ procedure print_right(x: Byte; y: Byte; s: String);overload;
 begin
     for i:=1 to byte(s[0]) do
     begin
-        DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
+        Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
     end;    
 end;
 
@@ -223,14 +224,12 @@ procedure terrain;
 (*
    generates terrain
 *)
-var
-    tile, prev_tile: TTerrain;
 
 begin
     if posX < (MAXWIDTH div 2)-1 then
     begin
-        // tile:=RandomTile;
-        tile:=PLANE;
+        tile:=RandomTile;
+        // tile:=PLANE;
         
         // Bottom limits check
         If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
@@ -322,7 +321,12 @@ begin
                 Inc(lms,3)
 			end;
 		end;
-    Inc(hscroll_count);
+        Inc(hscroll_count);
+    end;
+
+    if (hscroll_count = 48) then
+    begin
+        // clear_box(0, 0, 48, MAXHEIGHT);
     end;
 end;
 
@@ -386,7 +390,7 @@ begin
     
     // setting starting position for terrain
     posX:=0; //MAXWIDTH div 2;
-    posY:=MAXHEIGHT;
+    posY:=MAXHEIGHT-1;
 
 
     for posY:=0 to 20 do
@@ -394,19 +398,12 @@ begin
         for posX:=0 to 47 do
         begin
             print_game(posX,posY,posY+33);
+            // print_game(posX, posY, tileset[PLANE]);
         end;
     end;
-    // wait(6);
-    // clear_box_right(0, 10, 16, 10);
 
-    // hscroll_count:=0;
-    // newlms:=SCREEN_GAME + MAXWIDTH;
-    // for i:=0 to 20 do
-    // begin
-    //     dpoke(lms, newlms);
-    //     Inc(newlms,MAXWIDTH);
-    //     Inc(lms,3);
-    // end;	
+
+
     repeat
         WaitFrame;
         // if posX < 96 then begin 
@@ -414,7 +411,9 @@ begin
         // end;
         coarseScroll;
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-        print_bottom(d,hposition); if d< 40 then inc(d,2);
+        print_bottom(30,'  '~);print_bottom(30,posX);
+        print_bottom(35,'  '~);print_bottom(35,posY);
+        // print_bottom(d,hposition); if d< 40 then inc(d,2);
     until keypressed;
     
     //temporarly to test loop
