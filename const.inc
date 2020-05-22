@@ -28,6 +28,7 @@ CHARSET_GAME = CHARSET_TITLE3 + $400;
 NONE = $ff;
 
 MAXWIDTH = 96;
+SCREENWIDTH = 48;   // needs to be half of MAXWIDTH
 MAXHEIGHT = 21;
 ROWLIMIT = 8;
 ////////////////////////////////////////////////////////////////////////////////////////////////////

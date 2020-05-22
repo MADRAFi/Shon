@@ -65,13 +65,19 @@ var
     // accessory variables in loops
     // x: Byte; 
     i: Byte;
-    vi: Byte; // itteration in vbl interrupt
+    
+    
 
     // variables used for scroll
     hposition: Byte;
     hscroll_count: Byte;
+    old_hscroll_count: Byte;
+
+
     newlms: Word;
     lms: Word;
+    vi: Byte; // iteration in vbl interrupt
+
 
     // terrain positions
     posX: Byte;
@@ -113,10 +119,10 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-1 + x;
-    Poke(tmp, b);
-    // tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    // tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-1 + x;
     // Poke(tmp, b);
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    Poke(tmp, b);
 
 end;
 
@@ -227,8 +233,9 @@ procedure terrain;
 *)
 
 begin
+    // posX:=hscroll_count + SCREENWIDTH;
     // if posX < (MAXWIDTH div 2) then
-    if posX < 100 then
+    if posX < MAXWIDTH then
     begin
         tile:=RandomTile;
         // tile:=PLANE;
@@ -357,7 +364,8 @@ procedure show_game;
 *)
 begin
     hposition:=3;
-    hscroll_count:=1;
+    hscroll_count:=0;
+    old_hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -401,8 +409,19 @@ begin
 
     repeat
         WaitFrame;
-        // if posX < 48 then begin 
+        if old_hscroll_count <> hscroll_count then
+        begin 
             Terrain;
+            old_hscroll_count:= hscroll_count;
+        end;
+        // If hscroll_count = SCREENWIDTH then
+        // begin
+        //     tmp:=SCREEN_GAME;
+        //     for i:=0 to MAXHEIGHT-1 do
+        //     begin
+        //         move(pointer(tmp + SCREENWIDTH), pointer(tmp), SCREENWIDTH);
+        //         Inc(tmp,SCREENWIDTH)
+        //     end;
         // end;
         // coarseScroll;
         print_bottom(8,'  '~);print_bottom(8,hscroll_count);
