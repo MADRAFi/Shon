@@ -83,7 +83,7 @@ var
     time: Word;
     tmp: Word;
 
-    tileset: array [0..TILEMAX-1] of Byte = (SIGNUP, SIGNPLANE, SIGNDOWN, SIGNPLANE);
+    tileset: array [0..TILEMAX-1] of Byte = (SUP, SPLANE, SDOWN, SPAD);
 
     d: Byte = 15; // debug
 
@@ -115,8 +115,8 @@ procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 begin
     tmp:=SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-1 + x;
     Poke(tmp, b);
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
-    Poke(tmp, b);
+    // tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    // Poke(tmp, b);
 
 end;
 
@@ -151,15 +151,15 @@ const
 
 begin
     color1:=frmcolor;
-    print_line(x, y, byte(s[0]) + 8, SIGNFRAMEINV);
-    print_right(x, y + 1, SIGNFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SIGNFRAMEINV);
-    print_right(x, y + 2, SIGNFRAMEINV); 
+    print_line(x, y, byte(s[0]) + 8, SFRAMEINV);
+    print_right(x, y + 1, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SFRAMEINV);
+    print_right(x, y + 2, SFRAMEINV); 
     color1:=txtcolor;                   
     print_right(x + 3, y + 2, s);
     color1:=frmcolor;
-    print_right(x + byte(s[0]) + 7, y + 2, SIGNFRAMEINV);
-    print_right(x, y + 3, SIGNFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SIGNFRAMEINV);
-    print_line(x, y + 4, byte(s[0]) + 8, SIGNFRAMEINV);
+    print_right(x + byte(s[0]) + 7, y + 2, SFRAMEINV);
+    print_right(x, y + 3, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SFRAMEINV);
+    print_line(x, y + 4, byte(s[0]) + 8, SFRAMEINV);
 end;
 
 procedure clear_game;
@@ -208,12 +208,13 @@ end;
 function RandomTile : TTerrain;
 begin
     // randomize;
-    i:=Random(0) and (TILEMAX-1);
+    i:=Random(0) and (3);
     case i of
         0: Result:=UP;
-        1: Result:=PLANE;
+        1: Result:=PAD;
         2: Result:=DOWN;
         3: Result:=PLANE;
+        // 4: Result:=PAD;
     end;
 end;
 // -----------------------------------------------------------------------------
@@ -226,14 +227,10 @@ procedure terrain;
 *)
 
 begin
-    if posX < (MAXWIDTH div 2)-1 then
+    if posX < (MAXWIDTH div 2) then
     begin
         tile:=RandomTile;
         // tile:=PLANE;
-        
-        // Bottom limits check
-        If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
-        if (posY+1 >= MAXHEIGHT) and (tile = DOWN) then tile:=PLANE;
         
         // Top limits check TODO
         // If posY > ROWLIMIT then tile:=UP;
@@ -241,39 +238,64 @@ begin
         
         // print_bottom(d,tile);
         // inc(d,2);
-
+            // Bottom limits check
+        If (posY <= MAXHEIGHT - ROWLIMIT) and (tile = UP) then
+        begin
+            tile:=PLANE;
+            // Inc(posY); // inc y position to neutralise future dec ( can be replased with a flag)
+        end; 
+        if (posY >= MAXHEIGHT-2) and (tile = DOWN) then 
+        begin
+            tile:=PLANE;
+            // Dec(posY);  // dec y position to neutralise future inc ( can be replased with a flag)
+        end;
 
         if tile = prev_tile then
         begin 
             if tile = UP then
             begin
-                print_game(posX + 1, posY, SIGNPLANERIGHT);
+                // print_game(posX + 1, posY, SPLANERIGHT);
                 Dec(posY);
             end;
             if tile = DOWN then
             begin
-                print_game(posX, posY + 1, SIGNPLANELEFT);
+                // print_game(posX, posY + 1, SPLANELEFT);
                 Inc(posY);
             end;
         end
         else
-        begin  
-            if (tile = UP) and (prev_tile = PLANE) then
+        begin
+            ///////////////////////////////////////////////////////////////////////////
+
+            if (tile = UP) and ((prev_tile = PLANE) or (prev_tile = PAD)) then
             begin
-                print_game(posX + 1, posY, SIGNPLANERIGHT);
+                // print_game(posX + 1, posY, SPLANERIGHT);
                 Dec(posY);
+                // print_bottom(20,''~);
             end;
             if (tile = PLANE) and (prev_tile = DOWN) then
             begin
                 Inc(posY);
-                print_game(posX, posY, SIGNPLANELEFT);
+                // print_game(posX, posY, SPLANELEFT);
             end;
             if (tile = UP) and (prev_tile = DOWN) then
             begin
-                print_game(posX, posY + 1, SIGNPLANELEFT);
-                print_game(posX+1, posY + 1, SIGNPLANERIGHT);    
+                // print_game(posX, posY + 1, SPLANELEFT);
+                // print_game(posX+1, posY + 1, SPLANERIGHT);    
             end;
+            if (tile = PAD) and (prev_tile = PAD) then
+            begin
+                tile:= PLANE;
+            end;
+            if (tile = PAD) and (prev_tile = DOWN) then
+            begin
+                Inc(posY);
+                tile:=PLANE;
+                // print_game(posX, posY, SPLANELEFT);
+            end;
+            
             // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
+
         end;
 
         print_game(posX, posY, tileset[tile]);
@@ -288,47 +310,47 @@ begin
     // if posX > 4 then
     // begin
     //     clear_box(posX, 0, 1, MAXHEIGHT);
-    // end;    
+    // end;
+    // if (hscroll_count = 48) then
+    // begin
+    //     clear_box(0, 0, 96, MAXHEIGHT);
+    // end;
 end;
 
 // -----------------------------------------------------------------------------
 
-procedure coarseScroll;
-begin
-    // if (hposition = 0) then
-  	begin
-        lms := DISPLAY_LIST_GAME + 2;
-		If hscroll_count = MAXWIDTH-48 then
-	  	begin
-		  	// reset LMS to default
-			hscroll_count:=0;
-            newlms:=SCREEN_GAME;
-			for vi:=0 to 20 do
-			begin
-				dpoke(lms, newlms);
-				Inc(newlms,MAXWIDTH);
-                Inc(lms,3);
-			end;	
-		end
-		else
-		begin
-			// coarse scroll  
-			for vi:=0 to 20 do
-			begin
-				newlms:=dpeek(lms);
-				inc(newlms);
-				dpoke(lms, newlms);
-                Inc(lms,3)
-			end;
-		end;
-        Inc(hscroll_count);
-    end;
+// procedure coarseScroll;
+// begin
+//     // if (hposition = 0) then
+//   	begin
+//         lms := DISPLAY_LIST_GAME + 2;
+// 		If hscroll_count = MAXWIDTH-48 then
+// 	  	begin
+// 		  	// reset LMS to default
+// 			hscroll_count:=0;
+//             newlms:=SCREEN_GAME;
+// 			for vi:=0 to 20 do
+// 			begin
+// 				dpoke(lms, newlms);
+// 				Inc(newlms,MAXWIDTH);
+//                 Inc(lms,3);
+// 			end;	
+// 		end
+// 		else
+// 		begin
+// 			// coarse scroll  
+// 			for vi:=0 to 20 do
+// 			begin
+// 				newlms:=dpeek(lms);
+// 				inc(newlms);
+// 				dpoke(lms, newlms);
+//                 Inc(lms,3)
+// 			end;
+// 		end;
+//         Inc(hscroll_count);
+//     end;
 
-    if (hscroll_count = 48) then
-    begin
-        // clear_box(0, 0, 48, MAXHEIGHT);
-    end;
-end;
+// end;
 
 
 
@@ -390,29 +412,29 @@ begin
     
     // setting starting position for terrain
     posX:=0; //MAXWIDTH div 2;
-    posY:=MAXHEIGHT-1;
+    posY:= MAXHEIGHT-1;
 
 
-    for posY:=0 to 20 do
-    begin
-        for posX:=0 to 47 do
-        begin
-            print_game(posX,posY,posY+33);
-            // print_game(posX, posY, tileset[PLANE]);
-        end;
-    end;
+    // for posY:=0 to 20 do
+    // begin
+    //     for posX:=0 to 47 do
+    //     begin
+    //         print_game(posX,posY,posY+33);
+    //         // print_game(posX, posY, tileset[PLANE]);
+    //     end;
+    // end;
 
 
 
     repeat
         WaitFrame;
-        // if posX < 96 then begin 
-        // Terrain;
+        // if posX < 48 then begin 
+            Terrain;
         // end;
-        coarseScroll;
+        // coarseScroll;
         print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-        print_bottom(30,'  '~);print_bottom(30,posX);
-        print_bottom(35,'  '~);print_bottom(35,posY);
+        print_bottom(35,'  '~);print_bottom(35,posX);
+        print_bottom(38,'  '~);print_bottom(38,posY);
         // print_bottom(d,hposition); if d< 40 then inc(d,2);
     until keypressed;
     

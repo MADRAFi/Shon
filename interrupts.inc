@@ -57,12 +57,40 @@ begin
 	Inc(time);
 	if music then msx.play;
 	ATARI.hscrol:=hposition;
+	if (hposition = 3) then 
+	begin
+		lms := DISPLAY_LIST_GAME + 2;
+		If hscroll_count = MAXWIDTH-48 then
+	  	begin
+		  	// reset LMS to default
+			hscroll_count:=0;
+            newlms:=SCREEN_GAME;
+			for vi:=0 to 20 do
+			begin
+				dpoke(lms, newlms);
+				Inc(newlms,MAXWIDTH);
+                Inc(lms,3);
+			end;	
+		end
+		else
+		begin
+			// coarse scroll  
+			for vi:=0 to 20 do
+			begin
+				newlms:=dpeek(lms);
+				inc(newlms);
+				dpoke(lms, newlms);
+                Inc(lms,3)
+			end;
+		end;
+        Inc(hscroll_count);
+	end;
 	if (hposition = 0) then
   	begin
-     	hposition := 4;				// setting to 4 so it will be dec to 3 in next step and we want register to be [3 2 1 0]
-	end;
-
-	dec(hposition);
+    	hposition := 3;				// setting to 4 so it will be dec to 3 in next step and we want register to be [3 2 1 0]
+	end
+	else
+		dec(hposition);
 
 	asm {
 		lda #<dli_game1     ; point to second DLI
