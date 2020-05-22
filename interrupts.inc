@@ -85,12 +85,9 @@ begin
 		end;
         Inc(hscroll_count);
 	end;
-	if (hposition = 0) then
-  	begin
-    	hposition := 3;				// setting to 4 so it will be dec to 3 in next step and we want register to be [3 2 1 0]
-	end
-	else
-		dec(hposition);
+	// want register to be [3 2 1 0]
+	if (hposition = 0) then hposition := 3
+	else dec(hposition);
 
 	asm {
 		lda #<dli_game1     ; point to second DLI
