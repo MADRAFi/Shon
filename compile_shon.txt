@@ -1,0 +1,44 @@
+Mad Pascal Compiler version 1.6.4 [2020/05/05] for 6502
+Compiling shon.pas
+const.inc (28) Note: Local const 'NONE' not used
+const.inc (42) Note: Local const 'SIGNFRAME' not used
+shon.pas (19) Note: Local const 'FNT_TITLE' not used
+shon.pas (26) Note: Local const 'C0_TITLE' not used
+shon.pas (33) Note: Local const 'C1_TITLE' not used
+shon.pas (40) Note: Local const 'C2_TITLE' not used
+shon.pas (47) Note: Local const 'C3_TITLE' not used
+interrupts.inc (52) Note: Use assembler block instead pascal
+interrupts.inc (106) Note: Use assembler block instead pascal
+shon.pas (127) Note: Local proc 'PRINT_RIGHT' not used
+shon.pas (145) Note: Local proc 'PRINT_BOX_RIGHT' not used
+shon.pas (163) Note: Local proc 'CLEAR_GAME' not used
+shon.pas (171) Note: Local proc 'CLEAR_BOX_RIGHT' not used
+shon.pas (180) Note: Local proc 'CLEAR_BOX' not used
+shon.pas (198) Note: Local proc 'WAIT' not used
+shon.pas (206) Note: Local func 'RANDOMTILE' not used
+shon.pas (222) Note: Local proc 'TERRAIN' not used
+466 lines compiled, 1.08 sec, 13555 tokens, 1138 idents, 401 blocks, 10 types
+17 note(s) issued
+$R RCDATA  $9C00..$9FFF 'Assets/shon_title12.f00'
+$R RCDATA  $A000..$A3FF 'Assets/shon_title12.f01'
+$R RCDATA  $A400..$A7FF 'Assets/shon_title12.f02'
+$R RCDATA  $A800..$ABFF 'Assets/ScrambleNew.fnt'
+$R RCDATA  $5400..$58AF 'Assets/shon_title12.scr'
+$R RCASM   $4B00..$4B22 'dlist_title.asm'
+$R RCASM   $4A00..$4A47 'dlist_game.asm'
+$R RMTPLAY $5CE0..$632A 'Assets/rmt_feat.asm'
+$R RMT     $6800..$74A0 'Assets/lastminute.rmt'
+ZPAGE: $0080..$00DA
+RTLIB: $21E4..$23E4
+SYSTEM: $2424..$24B4
+CRT: $24B5..$24D8
+JOYSTICK: $24D9..$24E0
+RMT: $24E1..$257F
+SYSUTILS: $2580..$25B9
+B_CRT: $25BA..$2762
+CODE: $2000..$2C95
+DATA: $2C96..$311F
+Writing listing file...
+Writing object file...
+12897 lines of source assembled in 6 pass
+14085 bytes written to the object file
