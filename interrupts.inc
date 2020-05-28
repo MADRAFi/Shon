@@ -60,7 +60,7 @@ begin
 	if (hposition = 3) then 
 	begin
 		lms := DISPLAY_LIST_GAME + 2;
-		If hscroll_count = MAXWIDTH-48 then
+		If hscroll_count = 48 then
 	  	begin
 		  	// reset LMS to default
 			hscroll_count:=0;
