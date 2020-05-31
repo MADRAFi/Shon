@@ -65,12 +65,11 @@ var
     // accessory variables in loops
     // x: Byte; 
     i: Byte;
-    
+    tmp: Word;
     
 
     // variables used for scroll
     hposition: Byte;
-    // hscroll_count: Byte;
 
 
     newlms: Word;
@@ -86,11 +85,11 @@ var
 
     // time counter
     time: Word;
-    tmp: Word;
+
+
 
     tileset: array [0..TILEMAX-1] of Byte = (SUP, SPLANE, SDOWN, SPLANE, SPLANE);
 
-    d: Byte = 15; // debug
 
 {$i 'strings.inc'}
 {$i interrupts.inc}
@@ -102,7 +101,7 @@ var
 procedure print_bottom( x: Byte; s: String);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM,40,1);
+  CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
   CRT_GotoXY(x,0);
   CRT_Write(s);
 end;
@@ -110,7 +109,7 @@ end;
 procedure print_bottom( x: Byte; b: Byte);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM,40,1);
+  CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
   CRT_GotoXY(x,0);
   CRT_Write(b);CRT_Write('  '~);
 end;
@@ -118,7 +117,7 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + 48 + x;
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + VIEWWIDTH + x;
     Poke(tmp, b);
     tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
     Poke(tmp, b);
@@ -390,30 +389,21 @@ begin
 
         if hposition = $b then
         begin
-        	poke($44E0 + posX,0);
-            poke($4540 + posX,0);
-            poke($45A0 + posX,0);
-            poke($4600 + posX,0);
-            poke($4660 + posX,0);
-            poke($46C0 + posX,0);
-            poke($4720 + posX,0);
-            poke($4780 + posX,0);
+            // Starting address is highest point when terrain can draw (posY)
+            tmp:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT)); // 1248; $4E0
+            for i:=0 to ROWLIMIT - 1 do
+            begin
+                // we ned to clear both sides of the screen when we put tile during Terrain procedure
+                Poke(tmp + (MAXWIDTH * i) + posX, 0);
+                Poke(tmp + (MAXWIDTH * i) + VIEWWIDTH + posX, 0);
+            end;
 
-            poke($44E0 + $30 + posX,0);
-            poke($4540 + $30 + posX,0);
-            poke($45A0 + $30 + posX,0);
-            poke($4600 + $30 + posX,0);
-            poke($4660 + $30 + posX,0);
-            poke($46C0 + $30 + posX,0);
-            poke($4720 + $30 + posX,0);
-            poke($4780 + $30 + posX,0);
-        
             Terrain;
         end;
 
         print_bottom(35,'  '~);print_bottom(35,posX);
         print_bottom(38,'  '~);print_bottom(38,posY);
-        // print_bottom(d,hposition); if d< 40 then inc(d,2);
+
         WaitFrame;
     until keypressed;
     
