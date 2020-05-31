@@ -70,7 +70,7 @@ var
 
     // variables used for scroll
     hposition: Byte;
-    hscroll_count: Byte;
+    // hscroll_count: Byte;
 
 
     newlms: Word;
@@ -118,7 +118,7 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + SCREENWIDTH + x;
+    tmp:=SCREEN_GAME + (MAXWIDTH * y) + 48 + x;
     Poke(tmp, b);
     tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
     Poke(tmp, b);
@@ -232,9 +232,6 @@ procedure terrain;
 *)
 
 begin
-
-    if posX < SCREENWIDTH then
-    begin
         tile:=RandomTile;
         // tile:=PLANE;
         
@@ -314,12 +311,6 @@ begin
         print_game(posX, posY, tileset[tile]);
         prev_tile:=tile;
 
-        Inc(posX);
-    end    
-    else
-    begin
-        posX:= 0;
-    end;
 end;
 
 // -----------------------------------------------------------------------------
@@ -353,8 +344,8 @@ procedure show_game;
    displays game screen
 *)
 begin
-    hposition:=3;
-    hscroll_count:=0;
+    hposition:=$f;
+    // hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -371,7 +362,7 @@ begin
 
     
     color1:=$0e;
-
+    // color4:=2;
     // print_bottom(0,strings[1]);
 
     // print_box_right(12, 10, strings[3],$0e);
@@ -396,16 +387,34 @@ begin
 
 
     repeat
-        WaitFrame;
-        if hposition = 0 then
-        begin 
+
+        if hposition = $b then
+        begin
+        	poke($44E0 + posX,0);
+            poke($4540 + posX,0);
+            poke($45A0 + posX,0);
+            poke($4600 + posX,0);
+            poke($4660 + posX,0);
+            poke($46C0 + posX,0);
+            poke($4720 + posX,0);
+            poke($4780 + posX,0);
+
+            poke($44E0 + $30 + posX,0);
+            poke($4540 + $30 + posX,0);
+            poke($45A0 + $30 + posX,0);
+            poke($4600 + $30 + posX,0);
+            poke($4660 + $30 + posX,0);
+            poke($46C0 + $30 + posX,0);
+            poke($4720 + $30 + posX,0);
+            poke($4780 + $30 + posX,0);
+        
             Terrain;
         end;
 
-        print_bottom(8,'  '~);print_bottom(8,hscroll_count);
         print_bottom(35,'  '~);print_bottom(35,posX);
         print_bottom(38,'  '~);print_bottom(38,posY);
         // print_bottom(d,hposition); if d< 40 then inc(d,2);
+        WaitFrame;
     until keypressed;
     
     //temporarly to test loop
