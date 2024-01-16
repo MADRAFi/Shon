@@ -1,5 +1,5 @@
 program Shon;
-{$librarypath '../mads/blibs/'}
+{$librarypath '../blibs/'}
 uses atari, crt, joystick, rmt, b_crt;
 
 const
