@@ -4,17 +4,6 @@ uses atari, crt, joystick, rmt, b_crt;
 
 const
 {$i const.inc}
-    // display list is translated to asm in dlist_title.asm
-    // bellow code taken from g2f is left here for comparison 
-	// dlist: array [0..34] of byte = (
-	// 	$C4,lo(scr),hi(scr),
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$04,
-	// 	$41,lo(word(@dlist)),hi(word(@dlist))
-	// );
-
     // 
 	fnt_Title: array [0..29] of byte = (
 		hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),
