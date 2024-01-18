@@ -4,16 +4,7 @@ uses atari, crt, joystick, rmt, b_crt;
 
 const
 {$i const.inc}
-    // display list is translated to asm in dlist_title.asm
-    // bellow code taken from g2f is left here for comparison 
-	// dlist: array [0..34] of byte = (
-	// 	$C4,lo(scr),hi(scr),
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$84,$84,$84,$84,
-	// 	$84,$84,$84,$84,$04,
-	// 	$41,lo(word(@dlist)),hi(word(@dlist))
-	// );
+
 
     // 
 	fnt_Title: array [0..29] of byte = (
@@ -312,6 +303,54 @@ begin
 
 end;
 
+procedure MoveRight(step: byte);
+(*
+   moves terrain
+*)
+
+begin
+	// if (hposition = $b) then 
+	// begin
+		If posX = 48 then
+	  	begin
+		  	// reset LMS to default
+			posX:=0;
+            newlms:=SCREEN_GAME;
+			lms := DISPLAY_LIST_GAME;
+            pause;
+			for vi:=0 to 20 do
+			begin
+				dpoke(lms + 2, newlms);
+				Inc(newlms,MAXWIDTH);
+                Inc(lms,3);
+			end;	
+		end;
+
+		// coarse scroll
+		lms := DISPLAY_LIST_GAME + 2;
+        pause;
+		for vi:=0 to 20 do
+		begin
+			newlms:=dpeek(lms);
+			inc(newlms);
+			dpoke(lms, newlms);
+			Inc(lms,3)
+		end;
+
+        Inc(posX);
+		// hposition := $f;
+        hposition := $3;
+	// end;
+
+
+	ATARI.hscrol:=hposition;
+	// want register to be [3 2 1 0]
+	if (hposition = 0) then hposition := 3
+	else dec(hposition);
+	// dec(hposition);
+	Inc(time);
+end;
+
 // -----------------------------------------------------------------------------
 
 procedure show_title;
@@ -343,7 +382,8 @@ procedure show_game;
    displays game screen
 *)
 begin
-    hposition:=$f;
+    // hposition:=$f;
+    hposition:=$3;
     // hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
@@ -387,8 +427,8 @@ begin
 
     repeat
 
-        if hposition = $b then
-        begin
+        // if hposition = $b then
+        // begin
             // Starting address is highest point when terrain can draw (posY)
             tmp:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT)); // 1248; $4E0
             for i:=0 to ROWLIMIT - 1 do
@@ -399,7 +439,8 @@ begin
             end;
 
             Terrain;
-        end;
+            MoveRight(1);
+        // end;
 
         print_bottom(35,'  '~);print_bottom(35,posX);
         print_bottom(38,'  '~);print_bottom(38,posY);

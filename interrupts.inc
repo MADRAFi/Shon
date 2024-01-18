@@ -8,9 +8,7 @@ asm {
 		ldx #8        		; number of color changes
 		lda #$8f        	; initial color
 		sta WSYNC       	; first WSYNC gets us to start of scan line we want
-		; sta WSYNC
-		; sta WSYNC
-		; sta WSYNC
+		sta WSYNC
 
 ?loop   sta ATARI.COLPF2    ; change background color
 		sec
@@ -24,14 +22,14 @@ asm {
 		sta WSYNC       	;   for  scan lines
 		sta WSYNC       	;   for  scan lines
 		sta WSYNC       	;   for  scan lines
+		// sta WSYNC       	;   for  scan lines
 
 		bne ?loop       	; sta doesn't affect processor flags so we are still checking result of dex
 		lda #$00        	; reset color to black
 		sta ATARI.COLPF2
 		pla             	; restore X & A registers from stack
 		tax
-		lda #<dli_game2     ; point to second DLI
-		sta VDSLST
+		mwa #dli_game2 VDSLST
 		pla ; restore registers
 };
 end;
@@ -55,45 +53,11 @@ begin
 		phr 				; store registers
 		};
 	if music then msx.play;
-	if (hposition = $b) then 
-	begin
-		If posX = 48 then
-	  	begin
-		  	// reset LMS to default
-			posX:=0;
-            newlms:=SCREEN_GAME;
-			lms := DISPLAY_LIST_GAME;
-			for vi:=0 to 20 do
-			begin
-				dpoke(lms + 2, newlms);
-				Inc(newlms,MAXWIDTH);
-                Inc(lms,3);
-			end;	
-		end;
-
-		// coarse scroll
-		lms := DISPLAY_LIST_GAME + 2;
-		for vi:=0 to 20 do
-		begin
-			newlms:=dpeek(lms);
-			inc(newlms);
-			dpoke(lms, newlms);
-			Inc(lms,3)
-		end;
-
-        Inc(posX);
-		hposition := $f
-	end;
-	ATARI.hscrol:=hposition;
-	// want register to be [3 2 1 0]
-	// if (hposition = 0) then hposition := 3
-	// else dec(hposition);
-	dec(hposition);
-	Inc(time);
-
+	// ATARI.hscrol:=hposition;
+	// dec(hposition);
+	// Inc(time);
 	asm {
-		lda #<dli_game1     ; point to second DLI
-		sta VDSLST
+		mwa #dli_game1 VDSLST
 		plr 				; restore registers
 		jmp $E462 			; jump to system VBL handler
 	};
