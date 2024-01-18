@@ -95,7 +95,6 @@ var
 procedure print_bottom( x: Byte; s: String);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
   CRT_GotoXY(x,0);
   CRT_Write(s);
 end;
@@ -103,7 +102,6 @@ end;
 procedure print_bottom( x: Byte; b: Word);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
   CRT_GotoXY(x,0);
   CRT_Write(b);CRT_Write('  '~);
 end;
@@ -344,7 +342,7 @@ begin
     end;
 
 
-    // ATARI.hscrol:=hposition;
+    ATARI.hscrol:=hposition;
     // // want register to be [3 2 1 0]
     if (hposition = hposMin) then hposition := hposMax
     else dec(hposition);
@@ -383,14 +381,13 @@ procedure show_game;
    displays game screen
 *)
 begin
+
     gameTime:=0;
     scroll:= true;
     hposMin:= 0;
     hposMax:= 3;
-    // hposMin:= 12;
-    // hposMax:= 15;
+
     hposition:=hposMax;
-    // hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -405,7 +402,7 @@ begin
     fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
     fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
-    
+    CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
     color1:=$0e;
     // color4:=2;
     // print_bottom(0,strings[1]);
@@ -433,27 +430,31 @@ begin
 
     repeat
 
-        // if hposition = $3 then
-        // begin
+
             // Starting address is highest point when terrain can draw (posY)
             tmp:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT)); // 1248; $4E0
+            inc(tmp, posX);
             for i:=0 to ROWLIMIT - 1 do
             begin
                 // we ned to clear both sides of the screen when we put tile during Terrain procedure
-                Poke(tmp + (MAXWIDTH * i) + posX, 0);
-                Poke(tmp + (MAXWIDTH * i) + VIEWWIDTH + posX, 0);
+                Poke(tmp, 0);
+                Poke(tmp + VIEWWIDTH, 0);
+                inc(tmp, MAXWIDTH);
             end;
             if scroll then
             begin
-                // if gameTime = 255 then scroll:=false;
+                if gameTime = 600 then scroll:=false;
                 if (hposition = hposMax) then Terrain;
                 MoveRight;
             end;
         // end;
-        print_bottom(5,'      '~);print_bottom(5,gameTime);
-        print_bottom(35,'  '~);print_bottom(35,posX);
-        print_bottom(38,'  '~);print_bottom(38,posY);
-
+        
+        // if (gameTime mod 10) = 0 then
+        // begin
+        //     print_bottom(5,'      '~);print_bottom(5,gameTime);
+        //     print_bottom(35,'  '~);print_bottom(35,posX);
+        //     print_bottom(38,'  '~);print_bottom(38,posY);
+        // end;
         WaitFrame;
     until keypressed;
     
