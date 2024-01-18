@@ -50,6 +50,7 @@ var
     gamestate: TGameState;
     music: Boolean;
 
+
     msx: TRMT;
     old_vbl,old_dli:Pointer;
     chrctl : Byte absolute $D401;
@@ -61,7 +62,9 @@ var
 
     // variables used for scroll
     hposition: Byte;
-
+    scroll: Boolean;
+    hposMin: Byte;
+    hposMax: Byte;
 
     newlms: Word;
     lms: Word;
@@ -74,8 +77,8 @@ var
     tile: TTerrain = PLANE;
     prev_tile: TTerrain = PLANE;
 
-    // time counter
-    time: Word;
+    // gameTime counter
+    gameTime: Word;
 
 
 
@@ -97,7 +100,7 @@ begin
   CRT_Write(s);
 end;
 
-procedure print_bottom( x: Byte; b: Byte);overload;
+procedure print_bottom( x: Byte; b: Word);overload;
 // prints string at x position on bottom row (1 line)
 begin
   CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
@@ -197,7 +200,7 @@ procedure Wait(s:Byte);
 begin
     repeat
         waitframe;
-    until s = time div 60;
+    until s = gameTime div 60;
 end;
 
 function RandomTile : TTerrain;
@@ -303,52 +306,50 @@ begin
 
 end;
 
-procedure MoveRight(step: byte);
+procedure MoveRight;
 (*
    moves terrain
 *)
 
 begin
-	// if (hposition = $b) then 
-	// begin
-		If posX = 48 then
-	  	begin
-		  	// reset LMS to default
-			posX:=0;
-            newlms:=SCREEN_GAME;
-			lms := DISPLAY_LIST_GAME;
-            pause;
-			for vi:=0 to 20 do
-			begin
-				dpoke(lms + 2, newlms);
-				Inc(newlms,MAXWIDTH);
-                Inc(lms,3);
-			end;	
-		end;
 
-		// coarse scroll
-		lms := DISPLAY_LIST_GAME + 2;
-        pause;
-		for vi:=0 to 20 do
-		begin
-			newlms:=dpeek(lms);
-			inc(newlms);
-			dpoke(lms, newlms);
-			Inc(lms,3)
-		end;
+    if (hposition = hposMax) then begin
+        If posX = 48 then
+        begin
+            // reset LMS to default
+            posX:=0;
+            newlms:=SCREEN_GAME;
+            lms := DISPLAY_LIST_GAME;
+            // pause;
+            for vi:=0 to 20 do
+            begin
+                dpoke(lms + 2, newlms);
+                Inc(newlms,MAXWIDTH);
+                Inc(lms,3);
+            end;	
+        end;
+
+        // coarse scroll
+        lms := DISPLAY_LIST_GAME + 2;
+        // pause;
+        for vi:=0 to 20 do
+        begin
+            newlms:=dpeek(lms);
+            inc(newlms);
+            dpoke(lms, newlms);
+            Inc(lms,3)
+        end;
 
         Inc(posX);
-		// hposition := $f;
-        hposition := $3;
-	// end;
+    end;
 
 
-	ATARI.hscrol:=hposition;
-	// want register to be [3 2 1 0]
-	if (hposition = 0) then hposition := 3
-	else dec(hposition);
-	// dec(hposition);
-	Inc(time);
+    // ATARI.hscrol:=hposition;
+    // // want register to be [3 2 1 0]
+    if (hposition = hposMin) then hposition := hposMax
+    else dec(hposition);
+    // dec(hposition);
+	Inc(gameTime);
 end;
 
 // -----------------------------------------------------------------------------
@@ -382,8 +383,13 @@ procedure show_game;
    displays game screen
 *)
 begin
-    // hposition:=$f;
-    hposition:=$3;
+    gameTime:=0;
+    scroll:= true;
+    hposMin:= 0;
+    hposMax:= 3;
+    // hposMin:= 12;
+    // hposMax:= 15;
+    hposition:=hposMax;
     // hscroll_count:=0;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
@@ -427,7 +433,7 @@ begin
 
     repeat
 
-        // if hposition = $b then
+        // if hposition = $3 then
         // begin
             // Starting address is highest point when terrain can draw (posY)
             tmp:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT)); // 1248; $4E0
@@ -437,11 +443,14 @@ begin
                 Poke(tmp + (MAXWIDTH * i) + posX, 0);
                 Poke(tmp + (MAXWIDTH * i) + VIEWWIDTH + posX, 0);
             end;
-
-            Terrain;
-            MoveRight(1);
+            if scroll then
+            begin
+                // if gameTime = 255 then scroll:=false;
+                if (hposition = hposMax) then Terrain;
+                MoveRight;
+            end;
         // end;
-
+        print_bottom(5,'      '~);print_bottom(5,gameTime);
         print_bottom(35,'  '~);print_bottom(35,posX);
         print_bottom(38,'  '~);print_bottom(38,posY);
 
