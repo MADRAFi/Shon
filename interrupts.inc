@@ -53,11 +53,8 @@ begin
 		phr 				; store registers
 		};
 	if music then msx.play;
-	// ATARI.hscrol:=hposition;
-	// dec(hposition);
-	// Inc(time);
 	asm {
-		mwa #dli_game1 VDSLST
+		//mwa #dli_game1 VDSLST
 		plr 				; restore registers
 		jmp $E462 			; jump to system VBL handler
 	};

@@ -31,21 +31,36 @@ MAXWIDTH = 96;
 VIEWWIDTH = 48;   // needs to be half of MAXWIDTH
 MAXHEIGHT = 21;
 ROWLIMIT = 8;
+HPOSMIN = 0;
+HPOSMAX = 3;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TILEMAX = 5;
-SUP = 70;
-SDOWN = 71;
-SPLANE = 77;
-SPAD = 78;
 
+SUPT = 102;
+SDOWNT = 103;
+SPLANET = 109;
+SPADT = 110;
+
+SUPB = 70;
+SDOWNB = 71;
+SPLANEB = 77;
+SPADB = 78;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SPLANELEFT = 75;
-SPLANERIGHT = 76;
-SSLOPERIGHT = 79;
-SSLOPELEFT = 73;
+SPLANELEFTT = 107;
+SPLANERIGHTT = 108;
+SSLOPELEFTT = 105;
+SSLOPERIGHTT = 111;
+
+
+SPLANELEFTB = 75;
+SPLANERIGHTB = 76;
+SSLOPELEFTB = 73;
+SSLOPERIGHTB = 79;
+
+
 SFRAME = 10;
 SFRAMEINV = 138;
 

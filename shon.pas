@@ -57,14 +57,13 @@ var
     // accessory variables in loops
     // x: Byte; 
     i: Byte;
-    tmp: Word;
+    addressTop: Word;
+    addressBottom: Word;
     
 
     // variables used for scroll
     hposition: Byte;
     scroll: Boolean;
-    hposMin: Byte;
-    hposMax: Byte;
 
     newlms: Word;
     lms: Word;
@@ -73,16 +72,19 @@ var
 
     // terrain positions
     posX: Byte;
-    posY: Byte;
-    tile: TTerrain = PLANE;
-    prev_tile: TTerrain = PLANE;
+    posY_top: Byte;
+    posY_bottom: Byte;
+    tile: TTerrain = 255;
+    prev_tileT: TTerrain = 255;
+    prev_tileB: TTerrain = 255;
 
     // gameTime counter
     gameTime: Word;
 
 
 
-    tileset: array [0..TILEMAX-1] of Byte = (SUP, SPLANE, SDOWN, SPLANE, SPLANE);
+    tileset_top: array [0..TILEMAX-1] of Byte = (SUPT, SPLANET, SDOWNT, SPLANET, SPLANET);
+    tileset_bottom: array [0..TILEMAX-1] of Byte = (SUPB, SPLANEB, SDOWNB, SPLANEB, SPLANEB);
 
 
 {$i 'strings.inc'}
@@ -109,10 +111,10 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + VIEWWIDTH + x;
-    Poke(tmp, b);
-    tmp:=SCREEN_GAME + (MAXWIDTH * y) + x;
-    Poke(tmp, b);
+    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + VIEWWIDTH + x;
+    Poke(addressTop, b);
+    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    Poke(addressTop, b);
 
 end;
 
@@ -216,93 +218,191 @@ end;
 // -----------------------------------------------------------------------------
 
 
-
-procedure terrain;
+procedure enemies;
 (*
-   generates terrain
+   generates enemies
+*)
+begin
+    
+end;
+
+procedure terrainBottom;
+(*
+   generates terrain on Bottom
 *)
 
 begin
-        tile:=RandomTile;
-        // tile:=PLANE;
+        // Starting address is highest point when terrain can draw (posY_bottom)
+        addressBottom:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT));
+        inc(addressBottom, posX);
+        for i:=0 to ROWLIMIT - 1 do
+        begin
+            // we ned to clear both sides of the screen when we put tile during terrain procedure
+            Poke(addressBottom, 0);
+            Poke(addressBottom + VIEWWIDTH, 0);
+            inc(addressBottom, MAXWIDTH);
+        end;
         
-        // Top limits check TODO
-        // If posY > ROWLIMIT then tile:=UP;
-        //
+        tile:=RandomTile;
         
         // Bottom limits check
-        If (posY <= MAXHEIGHT - ROWLIMIT) and (tile = UP) then
+        If (posY_bottom <= MAXHEIGHT - ROWLIMIT) and (tile = UP) then
         begin
             tile:=PLANE;
-            // Inc(posY); // inc y position to neutralise future dec ( can be replased with a flag)
+            // Inc(posY_bottom); // inc y position to neutralise future dec ( can be replased with a flag)
         end; 
-        if (posY >= MAXHEIGHT-2) and (tile = DOWN) then 
+        if (posY_bottom >= MAXHEIGHT-2) and (tile = DOWN) then 
         begin
             tile:=PLANE;
-            // Dec(posY);  // dec y position to neutralise future inc ( can be replased with a flag)
+            // Dec(posY_bottom);  // dec y position to neutralise future inc ( can be replased with a flag)
         end;
 
-        if tile = prev_tile then
+        if tile = prev_tileB then
         begin 
             if tile = UP then
             begin
-                print_game(posX, posY, SPLANERIGHT);
-                print_game(posX - 1, posY - 1, SSLOPELEFT); //SSLOPELEFT
-                Dec(posY);
+                print_game(posX, posY_bottom, SPLANERIGHTB);
+                print_game(posX - 1, posY_bottom - 1, SSLOPELEFTB); //SSLOPELEFT
+                Dec(posY_bottom);
             end;
             if tile = DOWN then
             begin
-                print_game(posX - 1, posY + 1, SPLANELEFT);
-                print_game(posX, posY, SSLOPERIGHT);
-                Inc(posY);
+                print_game(posX - 1, posY_bottom + 1, SPLANELEFTB);
+                print_game(posX, posY_bottom, SSLOPERIGHTB);
+                Inc(posY_bottom);
             end;
         end
         else
         begin
             ///////////////////////////////////////////////////////////////////////////
 
-            if (tile = UP) and ((prev_tile = PLANE) or (prev_tile = PAD)) then
+            if (tile = UP) and ((prev_tileB = PLANE) or (prev_tileB = PAD)) then
             begin
-                print_game(posX, posY, SPLANERIGHT);
-                Dec(posY);
-                // print_bottom(20,''~);
+                print_game(posX, posY_bottom, SPLANERIGHTB);
+                Dec(posY_bottom);
             end;
-            // if (tile = UP) and (prev_tile = PAD) then
-            // begin
-            //     print_game(posX, posY, SPLANERIGHT);
-            //     Dec(posY);
-            //     // print_bottom(20,''~);
-            // end;
-            if (tile = PLANE) and (prev_tile = DOWN) then
+
+            if (tile = PLANE) and (prev_tileB = DOWN) then
             begin
-                Inc(posY);
-                print_game(posX - 1, posY, SPLANELEFT);
+                Inc(posY_bottom);
+                print_game(posX - 1, posY_bottom, SPLANELEFTB);
             end;
-            if (tile = UP) and (prev_tile = DOWN) then
+            if (tile = UP) and (prev_tileB = DOWN) then
             begin
-                print_game(posX - 1, posY + 1, SPLANELEFT);
-                print_game(posX, posY + 1, SPLANERIGHT);    
+                print_game(posX - 1, posY_bottom + 1, SPLANELEFTB);
+                print_game(posX, posY_bottom + 1, SPLANERIGHTB);
             end;
-            if (tile = PAD) and (prev_tile = PAD) then
+            if (tile = PAD) and (prev_tileB = PAD) then
             begin
                 tile:= PLANE;
             end;
-            if (tile = PAD) and (prev_tile = DOWN) then
+            if (tile = PAD) and (prev_tileB = DOWN) then
             begin
-                Inc(posY);
+                Inc(posY_bottom);
                 tile:=PLANE;
-                print_game(posX - 1, posY, SPLANELEFT);
+                print_game(posX - 1, posY_bottom, SPLANELEFTB);
             end;
             
 
-            // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
 
         end;
 
-        print_game(posX, posY, tileset[tile]);
-        prev_tile:=tile;
+        print_game(posX, posY_bottom, tileset_bottom[tile]);
+        prev_tileB:=tile;
 
 end;
+
+
+procedure terrainTop;
+(*
+   generates terrain on Top
+*)
+
+begin
+        // Starting address is highest point when terrain can draw (posY_bottom)
+        addressTop:= SCREEN_GAME + (MAXWIDTH * ROWLIMIT);
+        Inc(addressTop, posX);
+        for i:=0 to ROWLIMIT - 1 do
+        begin
+            // we ned to clear both sides of the screen when we put tile during terrain procedure
+            Poke(addressTop, 0);
+            Poke(addressTop + VIEWWIDTH, 0);
+            Dec(addressTop, MAXWIDTH);
+        end;
+
+        tile:=RandomTile;
+        
+        // Top limits check
+        If (posY_top >= ROWLIMIT) and (tile = DOWN) then
+        begin
+            tile:=PLANE;
+            // Dec(posY_top); // inc y position to neutralise future dec ( can be replased with a flag)
+        end; 
+        if (posY_top <= 2) and (tile = UP) then 
+        begin
+            tile:=PLANE;
+            // Inc(posY_top);  // dec y position to neutralise future inc ( can be replased with a flag)
+        end;
+
+        if tile = prev_tileT then
+        begin 
+            if tile = UP then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                print_game(posX, posY_top, SSLOPELEFTT);
+                Dec(posY_top);
+            end;
+            if tile = DOWN then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top + 1, SSLOPERIGHTT);
+                print_game(posX, posY_top, SPLANELEFTT);
+                Inc(posY_top);
+            end;
+        end
+        else
+        begin
+            ///////////////////////////////////////////////////////////////////////////
+
+            if (tile = DOWN) and ((prev_tileT = PLANE) or (prev_tileT = PAD)) then
+            begin
+                print_game(posX, posY_top, SPLANELEFTT);
+                Inc(posY_top);
+            end;
+            if  ((tile = PLANE) or (tile = PAD)) and (prev_tileT = UP) then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                // print_game(posX, posY_top + 1, SPLANERIGHTT);
+                If posY_top <= ROWLIMIT then Dec(posY_top);
+            end;
+            if (tile = DOWN) and (prev_tileT = UP) then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                print_game(posX, posY_top - 1, SPLANELEFTT);
+            end;
+            if (tile = PAD) and (prev_tileT = PAD) then
+            begin
+                tile:= PLANE;
+            end;
+            // if (tile = PAD) and (prev_tileT = DOWN) then
+            // begin
+            //     Inc(posY_top);
+            //     tile:=PLANE;
+            //     // print_game(posX - 1, posY_top, SPLANELEFTT);
+            // end;
+            
+
+
+        end;
+
+        print_game(posX, posY_top, tileset_top[tile]);
+        prev_tileT:=tile;
+
+end;
+
 
 procedure MoveRight;
 (*
@@ -311,7 +411,7 @@ procedure MoveRight;
 
 begin
 
-    if (hposition = hposMax) then begin
+    if (hposition = HPOSMAX) then begin
         If posX = 48 then
         begin
             // reset LMS to default
@@ -344,7 +444,7 @@ begin
 
     ATARI.hscrol:=hposition;
     // // want register to be [3 2 1 0]
-    if (hposition = hposMin) then hposition := hposMax
+    if (hposition = HPOSMIN) then hposition := HPOSMAX
     else dec(hposition);
     // dec(hposition);
 	Inc(gameTime);
@@ -384,10 +484,8 @@ begin
 
     gameTime:=0;
     scroll:= true;
-    hposMin:= 0;
-    hposMax:= 3;
 
-    hposition:=hposMax;
+    hposition:=HPOSMAX;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -415,45 +513,36 @@ begin
     
     // setting starting position for terrain
     posX:=0;
-    posY:= MAXHEIGHT-1;
+    posY_top:= 2;
+    posY_bottom:= MAXHEIGHT-1;
 
-
-    // for posY:=0 to 20 do
+    // for posY_bottom:=0 to 20 do
     // begin
     //     for posX:=0 to 47 do
     //     begin
-    //         print_game(posX,posY,posY+33);
-    //         // print_game(posX, posY, tileset[PLANE]);
+    //         print_game(posX,posY_bottom,posY_bottom+33);
+    //         // print_game(posX, posY_bottom, tileset[PLANE]);
     //     end;
     // end;
 
 
     repeat
-
-
-            // Starting address is highest point when terrain can draw (posY)
-            tmp:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT)); // 1248; $4E0
-            inc(tmp, posX);
-            for i:=0 to ROWLIMIT - 1 do
-            begin
-                // we ned to clear both sides of the screen when we put tile during Terrain procedure
-                Poke(tmp, 0);
-                Poke(tmp + VIEWWIDTH, 0);
-                inc(tmp, MAXWIDTH);
-            end;
             if scroll then
             begin
-                if gameTime = 600 then scroll:=false;
-                if (hposition = hposMax) then Terrain;
+                // if gameTime = 600 then scroll:=false;
+                if (hposition = HPOSMAX) then begin
+                    terrainTop;
+                    terrainBottom;
+                end;
                 MoveRight;
             end;
-        // end;
         
         // if (gameTime mod 10) = 0 then
         // begin
-        //     print_bottom(5,'      '~);print_bottom(5,gameTime);
-        //     print_bottom(35,'  '~);print_bottom(35,posX);
-        //     print_bottom(38,'  '~);print_bottom(38,posY);
+            // print_bottom(5,'      '~);print_bottom(5,gameTime);
+            // print_bottom(35,'  '~);print_bottom(35,posX);
+            // print_bottom(38,'  '~);print_bottom(38,posY_bottom);
+            // print_bottom(38,'  '~);print_bottom(38,posY_top);
         // end;
         WaitFrame;
     until keypressed;
