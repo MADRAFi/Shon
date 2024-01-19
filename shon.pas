@@ -4,6 +4,8 @@ uses atari, crt, joystick, rmt, b_crt;
 
 const
 {$i const.inc}
+
+
     // 
 	fnt_Title: array [0..29] of byte = (
 		hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),hi(CHARSET_TITLE1),
@@ -48,30 +50,43 @@ var
     gamestate: TGameState;
     music: Boolean;
 
+
     msx: TRMT;
     old_vbl,old_dli:Pointer;
-
+    chrctl : Byte absolute $D401;
     // accessory variables in loops
-    x: Byte; 
+    // x: Byte; 
     i: Byte;
+    addressTop: Word;
+    addressBottom: Word;
+    
 
     // variables used for scroll
     hposition: Byte;
-    hscroll_count: Byte;
+    scroll: Boolean;
+
     newlms: Word;
     lms: Word;
+    vi: Byte; // iteration in vbl interrupt
+
 
     // terrain positions
     posX: Byte;
-    posY: Byte;
+    posY_top: Byte;
+    posY_bottom: Byte;
+    tile: TTerrain = 255;
+    prev_tileT: TTerrain = 255;
+    prev_tileB: TTerrain = 255;
+
+    // gameTime counter
+    gameTime: Word;
 
 
-    // time counter
-    time: Word;
 
-    tileset: array [0..TILEMAX-1] of Byte = (SIGNUP,SIGNPLANE,SIGNDOWN);
+    tileset_top: array [0..TILEMAX-1] of Byte = (SUPT, SPLANET, SDOWNT, SPLANET, SPLANET);
+    tileset_bottom: array [0..TILEMAX-1] of Byte = (SUPB, SPLANEB, SDOWNB, SPLANEB, SPLANEB);
 
-    d: Byte = 15; // debug
+
 {$i 'strings.inc'}
 {$i interrupts.inc}
 
@@ -82,15 +97,13 @@ var
 procedure print_bottom( x: Byte; s: String);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM,40,1);
   CRT_GotoXY(x,0);
   CRT_Write(s);
 end;
 
-procedure print_bottom( x: Byte; b: Byte);overload;
+procedure print_bottom( x: Byte; b: Word);overload;
 // prints string at x position on bottom row (1 line)
 begin
-  CRT_Init(SCREEN_BOTTOM,40,1);
   CRT_GotoXY(x,0);
   CRT_Write(b);CRT_Write('  '~);
 end;
@@ -98,31 +111,17 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    // if hscroll_count > MAXWIDTH div 2 then
-    // begin 
-        // DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
-    //     DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
-    // end
-    // else DPoke(SCREEN_GAME + (MAXWIDTH * y) + x, b);
-    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, b);
+    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + VIEWWIDTH + x;
+    Poke(addressTop, b);
+    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    Poke(addressTop, b);
+
 end;
-
-// procedure print_game(x: Byte; y: Byte; c: Char);overload;
-// // prints byte at x,y position in left and right game area
-// begin
-//     if hscroll_count > MAXWIDTH div 2 then
-//     begin
-//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + x+4, byte(c));
-//         DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
-//     end
-//     else DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2)-4 + x, byte(c));
-
-// end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in right game area
 begin
-    DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+    Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
 end;
 
 procedure print_right(x: Byte; y: Byte; s: String);overload;
@@ -130,7 +129,7 @@ procedure print_right(x: Byte; y: Byte; s: String);overload;
 begin
     for i:=1 to byte(s[0]) do
     begin
-        DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
+        Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
     end;    
 end;
 
@@ -150,15 +149,15 @@ const
 
 begin
     color1:=frmcolor;
-    print_line(x, y, byte(s[0]) + 8, SIGNFRAMEINV);
-    print_right(x, y + 1, SIGNFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SIGNFRAMEINV);
-    print_right(x, y + 2, SIGNFRAMEINV); 
+    print_line(x, y, byte(s[0]) + 8, SFRAMEINV);
+    print_right(x, y + 1, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SFRAMEINV);
+    print_right(x, y + 2, SFRAMEINV); 
     color1:=txtcolor;                   
     print_right(x + 3, y + 2, s);
     color1:=frmcolor;
-    print_right(x + byte(s[0]) + 7, y + 2, SIGNFRAMEINV);
-    print_right(x, y + 3, SIGNFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SIGNFRAMEINV);
-    print_line(x, y + 4, byte(s[0]) + 8, SIGNFRAMEINV);
+    print_right(x + byte(s[0]) + 7, y + 2, SFRAMEINV);
+    print_right(x, y + 3, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SFRAMEINV);
+    print_line(x, y + 4, byte(s[0]) + 8, SFRAMEINV);
 end;
 
 procedure clear_game;
@@ -178,6 +177,15 @@ begin
     end;
 end;
 
+procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// clears box sizex,sizey at x,y in game screen
+begin
+    for i:=0 to sizeY - 1 do
+    begin
+        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + x), sizeX, 64);
+    end;
+end;
+
 procedure WaitFrame;
 begin
     asm {
@@ -192,98 +200,254 @@ procedure Wait(s:Byte);
 begin
     repeat
         waitframe;
-    until s = time div 60;
+    until s = gameTime div 60;
 end;
 
 function RandomTile : TTerrain;
 begin
     // randomize;
-    x:=Random(TILEMAX);
-    case x of
+    i:=Random(0) and 3;
+    case i of
         0: Result:=UP;
         1: Result:=PLANE;
         2: Result:=DOWN;
-        // 3: Result:=PLANE;
+        3: Result:=PAD;
         // 4: Result:=PLANE;
     end;
 end;
 // -----------------------------------------------------------------------------
 
 
-
-procedure terrain;
+procedure enemies;
 (*
-   generates terrain
+   generates enemies
 *)
-var
-    tile, prev_tile: TTerrain;
+begin
+    
+end;
+
+procedure terrainBottom;
+(*
+   generates terrain on Bottom
+*)
 
 begin
-    tile:=RandomTile; //Random(TILEMAX);
-    
-    // Bottom limits check
-    If (posY < MAXHEIGHT - ROWLIMIT) and (tile = UP) then tile:=PLANE; 
-    if (posY+1 >= MAXHEIGHT) and (tile = DOWN) then tile:=PLANE;
-    
-    // Top limits check TODO
-    // If posY > ROWLIMIT then tile:=UP;
-    //
-    
-    // print_bottom(d,tile);
-    // inc(d,2);
+        // Starting address is highest point when terrain can draw (posY_bottom)
+        addressBottom:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - ROWLIMIT));
+        inc(addressBottom, posX);
+        for i:=0 to ROWLIMIT - 1 do
+        begin
+            // we ned to clear both sides of the screen when we put tile during terrain procedure
+            Poke(addressBottom, 0);
+            Poke(addressBottom + VIEWWIDTH, 0);
+            inc(addressBottom, MAXWIDTH);
+        end;
+        
+        tile:=RandomTile;
+        
+        // Bottom limits check
+        If (posY_bottom <= MAXHEIGHT - ROWLIMIT) and (tile = UP) then
+        begin
+            tile:=PLANE;
+            // Inc(posY_bottom); // inc y position to neutralise future dec ( can be replased with a flag)
+        end; 
+        if (posY_bottom >= MAXHEIGHT-2) and (tile = DOWN) then 
+        begin
+            tile:=PLANE;
+            // Dec(posY_bottom);  // dec y position to neutralise future inc ( can be replased with a flag)
+        end;
+
+        if tile = prev_tileB then
+        begin 
+            if tile = UP then
+            begin
+                print_game(posX, posY_bottom, SPLANERIGHTB);
+                print_game(posX - 1, posY_bottom - 1, SSLOPELEFTB); //SSLOPELEFT
+                Dec(posY_bottom);
+            end;
+            if tile = DOWN then
+            begin
+                print_game(posX - 1, posY_bottom + 1, SPLANELEFTB);
+                print_game(posX, posY_bottom, SSLOPERIGHTB);
+                Inc(posY_bottom);
+            end;
+        end
+        else
+        begin
+            ///////////////////////////////////////////////////////////////////////////
+
+            if (tile = UP) and ((prev_tileB = PLANE) or (prev_tileB = PAD)) then
+            begin
+                print_game(posX, posY_bottom, SPLANERIGHTB);
+                Dec(posY_bottom);
+            end;
+
+            if (tile = PLANE) and (prev_tileB = DOWN) then
+            begin
+                Inc(posY_bottom);
+                print_game(posX - 1, posY_bottom, SPLANELEFTB);
+            end;
+            if (tile = UP) and (prev_tileB = DOWN) then
+            begin
+                print_game(posX - 1, posY_bottom + 1, SPLANELEFTB);
+                print_game(posX, posY_bottom + 1, SPLANERIGHTB);
+            end;
+            if (tile = PAD) and (prev_tileB = PAD) then
+            begin
+                tile:= PLANE;
+            end;
+            if (tile = PAD) and (prev_tileB = DOWN) then
+            begin
+                Inc(posY_bottom);
+                tile:=PLANE;
+                print_game(posX - 1, posY_bottom, SPLANELEFTB);
+            end;
+            
 
 
-    if tile = prev_tile then
-    begin 
-        if tile = UP then
-        begin
-            print_game(posX + 1, posY, SIGNPLANERIGHT);
-            Dec(posY);
         end;
-        if tile = DOWN then
-        begin
-            print_game(posX, posY + 1, SIGNPLANELEFT);
-            Inc(posY);
-        end;
-    end
-    else
-    begin  
-        if (tile = UP) and (prev_tile = PLANE) then
-        begin
-            print_game(posX + 1, posY, SIGNPLANERIGHT);
-            Dec(posY);
-        end;
-        if (tile = PLANE) and (prev_tile = DOWN) then
-        begin
-            Inc(posY);
-            print_game(posX, posY, SIGNPLANELEFT);
-        end;
-        if (tile = UP) and (prev_tile = DOWN) then
-        begin
-            print_game(posX, posY + 1, SIGNPLANELEFT);
-            print_game(posX+1, posY + 1, SIGNPLANERIGHT);    
-        end;
-        // if (tile = DOWN) and (prev_tile = PLANE) then Inc(posY);
-    end;
 
-    if posX < 40 then
-    begin
+        print_game(posX, posY_bottom, tileset_bottom[tile]);
+        prev_tileB:=tile;
+
+end;
+
+
+procedure terrainTop;
+(*
+   generates terrain on Top
+*)
+
+begin
+        // Starting address is highest point when terrain can draw (posY_bottom)
+        addressTop:= SCREEN_GAME + (MAXWIDTH * ROWLIMIT);
+        Inc(addressTop, posX);
+        for i:=0 to ROWLIMIT - 1 do
+        begin
+            // we ned to clear both sides of the screen when we put tile during terrain procedure
+            Poke(addressTop, 0);
+            Poke(addressTop + VIEWWIDTH, 0);
+            Dec(addressTop, MAXWIDTH);
+        end;
+
+        tile:=RandomTile;
+        
+        // Top limits check
+        If (posY_top >= ROWLIMIT) and (tile = DOWN) then
+        begin
+            tile:=PLANE;
+            // Dec(posY_top); // inc y position to neutralise future dec ( can be replased with a flag)
+        end; 
+        if (posY_top <= 2) and (tile = UP) then 
+        begin
+            tile:=PLANE;
+            // Inc(posY_top);  // dec y position to neutralise future inc ( can be replased with a flag)
+        end;
+
+        if tile = prev_tileT then
+        begin 
+            if tile = UP then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                print_game(posX, posY_top, SSLOPELEFTT);
+                Dec(posY_top);
+            end;
+            if tile = DOWN then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top + 1, SSLOPERIGHTT);
+                print_game(posX, posY_top, SPLANELEFTT);
+                Inc(posY_top);
+            end;
+        end
+        else
+        begin
+            ///////////////////////////////////////////////////////////////////////////
+
+            if (tile = DOWN) and ((prev_tileT = PLANE) or (prev_tileT = PAD)) then
+            begin
+                print_game(posX, posY_top, SPLANELEFTT);
+                Inc(posY_top);
+            end;
+            if  ((tile = PLANE) or (tile = PAD)) and (prev_tileT = UP) then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                // print_game(posX, posY_top + 1, SPLANERIGHTT);
+                If posY_top <= ROWLIMIT then Dec(posY_top);
+            end;
+            if (tile = DOWN) and (prev_tileT = UP) then
+            begin
+                if posX > 0 then
+                    print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
+                print_game(posX, posY_top - 1, SPLANELEFTT);
+            end;
+            if (tile = PAD) and (prev_tileT = PAD) then
+            begin
+                tile:= PLANE;
+            end;
+            // if (tile = PAD) and (prev_tileT = DOWN) then
+            // begin
+            //     Inc(posY_top);
+            //     tile:=PLANE;
+            //     // print_game(posX - 1, posY_top, SPLANELEFTT);
+            // end;
+            
+
+
+        end;
+
+        print_game(posX, posY_top, tileset_top[tile]);
+        prev_tileT:=tile;
+
+end;
+
+
+procedure MoveRight;
+(*
+   moves terrain
+*)
+
+begin
+
+    if (hposition = HPOSMAX) then begin
+        If posX = 48 then
+        begin
+            // reset LMS to default
+            posX:=0;
+            newlms:=SCREEN_GAME;
+            lms := DISPLAY_LIST_GAME;
+            // pause;
+            for vi:=0 to 20 do
+            begin
+                dpoke(lms + 2, newlms);
+                Inc(newlms,MAXWIDTH);
+                Inc(lms,3);
+            end;	
+        end;
+
+        // coarse scroll
+        lms := DISPLAY_LIST_GAME + 2;
+        // pause;
+        for vi:=0 to 20 do
+        begin
+            newlms:=dpeek(lms);
+            inc(newlms);
+            dpoke(lms, newlms);
+            Inc(lms,3)
+        end;
+
         Inc(posX);
-    end    
-    else
-    begin
-//     // clear_box(0, 0, MAXWIDTH div 2, MAXHEIGHT);
-        posX:= 0;
     end;
 
-    print_game(posX, posY, tileset[tile]);
-    prev_tile:=tile;
 
-
-    // if posX > 4 then
-    // begin
-    //     clear_box(posX, 0, 1, MAXHEIGHT);
-    // end;    
+    ATARI.hscrol:=hposition;
+    // // want register to be [3 2 1 0]
+    if (hposition = HPOSMIN) then hposition := HPOSMAX
+    else dec(hposition);
+    // dec(hposition);
+	Inc(gameTime);
 end;
 
 // -----------------------------------------------------------------------------
@@ -317,8 +481,11 @@ procedure show_game;
    displays game screen
 *)
 begin
-    hposition:=4;
-    hscroll_count:=0;
+
+    gameTime:=0;
+    scroll:= true;
+
+    hposition:=HPOSMAX;
     SetIntVec(iVBL, @vbl_game);
     SetIntVec(iDLI, @dli_game1);
     sdmctl := byte(normal or enable or missiles or players or oneline);
@@ -333,12 +500,10 @@ begin
     fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
     fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
-    
+    CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
     color1:=$0e;
-
-
-    // print_game(20,12,'Terrain test'~);
-    print_bottom(0,strings[1]);
+    // color4:=2;
+    // print_bottom(0,strings[1]);
 
     // print_box_right(12, 10, strings[3],$0e);
     // Wait(6);
@@ -347,15 +512,41 @@ begin
     // print_bottom(30,'DONE'~);
     
     // setting starting position for terrain
-    posX:=0; //MAXWIDTH div 2;
-    posY:=MAXHEIGHT;
-    
-    repeat
-        WaitFrame;
-        if posX< 40 then Terrain;
-        print_bottom(10,'  '~);print_bottom(10,hscroll_count);
-    until keypressed;
+    posX:=0;
+    posY_top:= 2;
+    posY_bottom:= MAXHEIGHT-1;
 
+    // for posY_bottom:=0 to 20 do
+    // begin
+    //     for posX:=0 to 47 do
+    //     begin
+    //         print_game(posX,posY_bottom,posY_bottom+33);
+    //         // print_game(posX, posY_bottom, tileset[PLANE]);
+    //     end;
+    // end;
+
+
+    repeat
+            if scroll then
+            begin
+                // if gameTime = 600 then scroll:=false;
+                if (hposition = HPOSMAX) then begin
+                    terrainTop;
+                    terrainBottom;
+                end;
+                MoveRight;
+            end;
+        
+        // if (gameTime mod 10) = 0 then
+        // begin
+            // print_bottom(5,'      '~);print_bottom(5,gameTime);
+            // print_bottom(35,'  '~);print_bottom(35,posX);
+            // print_bottom(38,'  '~);print_bottom(38,posY_bottom);
+            // print_bottom(38,'  '~);print_bottom(38,posY_top);
+        // end;
+        WaitFrame;
+    until keypressed;
+    
     //temporarly to test loop
     gamestate:= GAMEOVER
 end;
@@ -378,8 +569,8 @@ begin
     msx.player := pointer(RMT_PLAYER_ADDRESS);
     msx.modul := pointer(RMT_MODULE_TITLE);
     msx.Init(0);
-
-
+    
+    chrctl:=$02;
     sdmctl := byte(normal or enable or missiles or players or oneline);
 
 (*  set and run vbl interrupt *)
