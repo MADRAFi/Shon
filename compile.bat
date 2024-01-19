@@ -1,4 +1,5 @@
 @Echo off
+
 @setlocal
 @set PATH=%PATH%;D:\Dropbox\Atari\DEV\MAD-Pascal\;D:\Dropbox\Atari\DEV\MADS\
 echo Compiling
