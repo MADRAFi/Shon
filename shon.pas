@@ -76,6 +76,8 @@ var
     posY_bottom: Byte;
     rowLimitT: Byte;
     rowLimitB: Byte;
+    maxLimitT: Byte;
+    maxLimitB: Byte;
     tile: TTerrain = NONE;
     prev_tileT: TTerrain = NONE;
     prev_tileB: TTerrain = NONE;
@@ -88,7 +90,8 @@ var
     stage1: TStage;
     stage2: TStage;
     stage3: TStage;
-    levelStages: array [0..STAGEMAX-1] of Pointer = (@stage1, @stage2, @stage3);
+    stage4: TStage;
+    levelStages: array [0..STAGEMAX-1] of Pointer = (@stage1, @stage2, @stage3, @stage4);
 
     tileset_top: array [0..TILEMAX-1] of Byte = (SUPT, SPLANET, SDOWNT, SPLANET, SPLANET);
     tileset_bottom: array [0..TILEMAX-1] of Byte = (SUPB, SPLANEB, SDOWNB, SPLANEB, SPLANEB);
@@ -168,12 +171,23 @@ begin
     print_line(x, y + 4, byte(s[0]) + 8, SFRAMEINV);
 end;
 
-procedure clear_game;
+procedure clear_game(min_row: Byte; max_row: Byte);
 // clears game screen
 begin
     //  DPoke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, 0);
     // fillbyte(pointer(SCREEN_GAME), (MAXWIDTH div 2 ) * MAXHEIGHT,0);
-    fillbyte(pointer(SCREEN_GAME), $900, 0);
+    // fillbyte(pointer(SCREEN_GAME), $900, 0);
+
+
+    // addressBottom:=SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - maxLimitB));
+    // inc(addressBottom, posX);
+    // for i:=0 to (maxLimitB) - 1 do
+    // begin
+    //     // we ned to clear both sides of the screen when we put tile during terrain procedure
+    //     Poke(addressBottom, 0);
+    //     Poke(addressBottom + VIEWWIDTH, 0);
+    //     inc(addressBottom, MAXWIDTH);
+    // end;
 end;
 
 procedure clear_box_right(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
@@ -233,24 +247,31 @@ procedure initLevel;
 begin
     stage1.name:= 'Stage 1';
     stage1.numeric:= 1;
-    stage1.maxTop:= 8;
+    stage1.maxTop:= 3;
     stage1.maxBottom:= 3;
 
     stage2.name:= 'Stage 2';
     stage2.numeric:= 2;
     stage2.maxTop:= 5;
-    stage2.maxBottom:= 12;
+    stage2.maxBottom:= 15;
 
     stage3.name:= 'Stage 3';
     stage3.numeric:= 3;
-    stage3.maxTop:= 3;
-    stage3.maxBottom:= 3;
+    stage3.maxTop:= 15;
+    stage3.maxBottom:= 5;
+
+    stage4.name:= 'Stage 4';
+    stage4.numeric:= 4;
+    stage4.maxTop:= 15;
+    stage4.maxBottom:= 15;
 
     rowLimitT:=stage1.maxTop;
     rowLimitB:=stage1.maxBottom;
+    maxLimitT:=10;
+    maxLimitB:=11;
+    stage:=Pointer(levelStages[currentStage]);
     gameTime:=0;
     currentStage:=1;
-    stage:=Pointer(levelStages[currentStage-1]); // temp for debug
     scroll:= true;
 end;
 
@@ -269,17 +290,17 @@ procedure terrainBottom;
 *)
 
 begin
-        // Starting address is highest point when terrain can draw (posY_bottom)
-        addressBottom:= SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - rowLimitB));
+    
+        addressBottom:=SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - maxLimitB));
         inc(addressBottom, posX);
-        for i:=0 to rowLimitB - 1 do
+        for i:=0 to (maxLimitB) - 1 do
         begin
             // we ned to clear both sides of the screen when we put tile during terrain procedure
             Poke(addressBottom, 0);
             Poke(addressBottom + VIEWWIDTH, 0);
             inc(addressBottom, MAXWIDTH);
         end;
-        
+
         tile:=RandomTile;
         
         // Bottom limits check
@@ -355,14 +376,14 @@ procedure terrainTop;
 
 begin
         // Starting address is highest point when terrain can draw (posY_bottom)
-        addressTop:= SCREEN_GAME + (MAXWIDTH * (rowLimitT));
-        Inc(addressTop, posX);
-        for i:=0 to rowLimitT - 1 do
+        addressTop:=SCREEN_GAME;
+        inc(addressTop, posX);
+        for i:=0 to (maxLimitT) - 1 do
         begin
             // we ned to clear both sides of the screen when we put tile during terrain procedure
             Poke(addressTop, 0);
             Poke(addressTop + VIEWWIDTH, 0);
-            Dec(addressTop, MAXWIDTH);
+            Inc(addressTop, MAXWIDTH);
         end;
 
         tile:=RandomTile;
@@ -564,19 +585,21 @@ begin
         begin
 
             if (hposition = HPOSMAX) then begin
-                if (gameTime > 0) and (gameTime mod 200 = 0) then begin
+                if (gameTime > 0) and (gameTime mod 600 = 0) then begin
                     if currentStage < STAGEMAX then begin
                         Inc(currentStage);
                         stage:=Pointer(levelStages[currentStage-1]);
                         rowLimitT:=stage.maxTop;
                         rowLimitB:=stage.maxBottom;
+                        // if rowLimitT > maxLimitT then maxLimitT:=rowLimitT;
+                        // if rowLimitB > maxLimitB then maxLimitB:=rowLimitT;
                     end else
                     begin
                         scroll:=false;
                         currentStage:=STAGEMAX;
                     end;
                 end; 
-                // terrainTop;
+                terrainTop;
                 terrainBottom;
 
             end;
@@ -585,6 +608,7 @@ begin
 
         if (gameTime mod 20) = 0 then
         begin
+            stage:=Pointer(levelStages[currentStage-1]);
             print_bottom(5,'      '~);print_bottom(5,gameTime);
             print_bottom(15,'  '~);print_bottom(15,currentStage);
             print_bottom(20,'  '~);print_bottom(20,stage.numeric);
