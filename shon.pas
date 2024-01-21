@@ -1,6 +1,6 @@
 program Shon;
 {$librarypath '../blibs/'}
-uses atari, crt, joystick, rmt, b_crt;
+uses atari, crt, joystick, rmt, sysutils;
 
 const
 {$i const.inc}
@@ -57,6 +57,7 @@ var
     // accessory variables in loops
     // x: Byte; 
     i: Byte;
+    tmp: TString;
     addressTop: Word;
     addressBottom: Word;
     
@@ -102,22 +103,60 @@ var
 
 // -----------------------------------------------------------------------------
 // auxiliary procedures
-
-
-procedure print_bottom( x: Byte; s: String);overload;
-// prints string at x position on bottom row (1 line)
+function Atascii2Antic(c: char): char; overload;
 begin
-  CRT_GotoXY(x,0);
-  CRT_Write(s);
+    asm {
+        lda c
+        asl
+        php
+        cmp #2*$60
+        bcs @+
+        sbc #2*$20-1
+        bcs @+
+        adc #2*$60
+@       plp
+        ror
+        sta result;
+    };
 end;
 
-procedure print_bottom( x: Byte; b: Word);overload;
-// prints string at x position on bottom row (1 line)
+procedure Str2Antic(var s: string);
+var i:byte;
 begin
-  CRT_GotoXY(x,0);
-  CRT_Write(b);
-//   CRT_Write('  '~);
+    for i:=1 to byte(s[0]) do s[i] := Atascii2Antic(s[i]);
 end;
+
+procedure print_bottom( x, y: Byte; s: String);overload;
+// prints string at x position on bottom row (1 line)
+
+begin
+    Str2Antic(s);
+
+    addressBottom:=SCREEN_BOTTOM + ((VIEWWIDTH - 8) * y) + x;
+    move(s[1], pointer(addressBottom), Length(s));  
+end;
+
+procedure print_bottom( x, y: Byte; d: Cardinal);overload;
+// prints string at x position on bottom row (1 line)
+
+begin
+    tmp:=IntToStr(d);
+    Str2Antic(tmp);
+
+    addressBottom:=SCREEN_BOTTOM + ((VIEWWIDTH - 8) * y) + x;
+    move(tmp[1], pointer(addressBottom), Length(tmp));  
+end;
+
+// procedure print_bottom( x, y: Byte; d: Byte);overload;
+// // prints string at x position on bottom row (1 line)
+
+// begin
+//     tmp:=IntToStr(d);
+//     Str2Antic(tmp);
+
+//     addressBottom:=SCREEN_BOTTOM + ((VIEWWIDTH - 8) * y) + x;
+//     move(tmp[1], pointer(addressBottom), Length(tmp));  
+// end;
 
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
@@ -126,7 +165,6 @@ begin
     Poke(addressTop, b);
     addressTop:=SCREEN_GAME + (MAXWIDTH * y) + x;
     Poke(addressTop, b);
-
 end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
@@ -553,7 +591,7 @@ begin
     fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
     fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
-    CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
+    // CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
     color1:=$0e;
     // color4:=2;
     // print_bottom(0,strings[1]);
@@ -599,7 +637,7 @@ begin
                         currentStage:=STAGEMAX;
                     end;
                 end; 
-                terrainTop;
+                // terrainTop;
                 terrainBottom;
 
             end;
@@ -609,14 +647,20 @@ begin
         if (gameTime mod 20) = 0 then
         begin
             stage:=Pointer(levelStages[currentStage-1]);
-            print_bottom(5,'      '~);print_bottom(5,gameTime);
-            print_bottom(15,'  '~);print_bottom(15,currentStage);
-            print_bottom(20,'  '~);print_bottom(20,stage.numeric);
+            // print_bottom(5,'      '~);print_bottom(5,gameTime);
+            // print_bottom(15,'  '~);print_bottom(15,currentStage);
+            // print_bottom(20,'  '~);print_bottom(20,stage.numeric);
             // print_bottom(38,'  '~);print_bottom(38,posY_top);
             // print_bottom(35,'  '~);print_bottom(35,rowLimitT);
             // print_bottom(38,'  '~);print_bottom(38,rowLimitB);
-            print_bottom(34,'  '~);print_bottom(34,stage.maxTop);
-            print_bottom(37,'  '~);print_bottom(37,stage.maxBottom);
+
+            print_bottom(5,0,gameTime);
+            print_bottom(15,0,currentStage);
+            print_bottom(20,0,stage.numeric);
+            // print_bottom(38,1,posY_top);
+            print_bottom(35,0,rowLimitT);
+            print_bottom(38,0,rowLimitB);
+
         end;
         WaitFrame;
     until keypressed;
