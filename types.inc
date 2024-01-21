@@ -4,8 +4,11 @@
 type TStage = record
    name: TString;
    numeric: byte;
+   minTop: byte;
    maxTop: byte;
+   minBottom: byte;
    maxBottom: byte;
+   len: word;
 end;
 
 type
