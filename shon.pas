@@ -272,18 +272,10 @@ procedure initLevel;
    minTop and minBottom must be greater then 2 if maxTop and maxBottom are greater then 1
 *)
 begin
-    // stage1.name:= 'Stage 1';
-    // stage1.numeric:= 1;
-    // stage1.minTop:= 2;
-    // stage1.maxTop:= 3;
-    // stage1.minBottom:= 2;
-    // stage1.maxBottom:= 3;
-    // stage1.len:= 600;
-
     stage1.name:= 'Stage 1';
     stage1.numeric:= 1;
-    stage1.minTop:= 0;
-    stage1.maxTop:= 0;
+    stage1.minTop:= 2;
+    stage1.maxTop:= 5;
     stage1.minBottom:= 2;
     stage1.maxBottom:= 5;
     stage1.len:= 2000;
@@ -389,10 +381,6 @@ begin
                                 end;
                             end;
                             if prev_tileB = DOWN then begin
-                                // if posY_bottom < MAXHEIGHT - stage.maxBottom then
-                                // else begin
-                                //     // tile:=WARN;
-                                // end;
                                 print_game(posX - 1, posY_bottom + 1, SPLAINLEFTB);
                                 print_game(posX, posY_bottom + 1, SPLAINRIGHTB);
                             end;
@@ -405,20 +393,22 @@ begin
                             end;
 
                             if prev_tileB = DOWN then begin
+                                Inc(posY_bottom);
                                 if (posY_bottom + 1 < MAXHEIGHT - 1) then begin
-                                    Inc(posY_bottom);
                                     print_game(posX - 1, posY_bottom, SPLAINLEFTB);
                                     print_game(posX, posY_bottom - 1, SSLOPERIGHTB);
                                 end
                                 else
                                 begin
-                                    Inc(posY_bottom);
                                     tile:=PLAIN;
+                                    print_game(posX - 1, posY_bottom, SPLAINLEFTB);
                                 end;
                             end;
                         end;
 
-                PLAIN,PAD,WARN:  begin
+                PLAIN,
+                PAD,
+                WARN:   begin
                             if prev_tileB = DOWN then begin
                                 if posY_bottom < MAXHEIGHT - 1 then begin
                                     Inc(posY_bottom);
@@ -441,7 +431,7 @@ procedure terrainTop;
 *)
 
 begin
-        // Starting address is highest point when terrain can draw (posY_bottom)
+        // Starting address is highest point when terrain can draw (posY_top)
         addressTop:=SCREEN_GAME;
         inc(addressTop, posX);
         // erasing top + gap in the middle
@@ -465,65 +455,75 @@ begin
         if stage.maxTop > 0 then begin
             tile:=RandomTile;
             
-            // Top limits check
-            // If (posY_top + 1 >= stage.maxTop) and (tile = DOWN) then
-            // begin
-            //     tile:=PLAIN;
-            // end;
-            
-            // If (posY_top <= stage.minTop) and (tile = UP) then
-            // begin
-            //     tile:=PLAIN;
-            // end; 
-
-            if tile = prev_tileT then
-            begin 
-                // if tile = UP then
-                // begin
-                //     if posX > 0 then
-                //         print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
-                //     print_game(posX, posY_top, SSLOPELEFTT);
-                //     Dec(posY_top);
-                // end;
-                // if tile = DOWN then
-                // begin
-                //     if posX > 0 then
-                //         print_game(posX - 1, posY_top + 1, SSLOPERIGHTT);
-                //     print_game(posX, posY_top, SPLANELEFTT);
-                //     Inc(posY_top);
-                // end;
-            end
-            else
+             // Max limits check
+            If (posY_top >= stage.maxTop) and (tile = DOWN) then
             begin
-                ///////////////////////////////////////////////////////////////////////////
-
-                // if (tile = DOWN) and ((prev_tileT = PLAIN) or (prev_tileT = PAD)) then
-                // begin
-                //     print_game(posX, posY_top, SPLANELEFTT);
-                //     Inc(posY_top);
-                // end;
-                // if  ((tile = PLAIN) or (tile = PAD)) and (prev_tileT = UP) then
-                // begin
-                //     if posX > 0 then
-                //         print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
-                //     // print_game(posX, posY_top + 1, SPLANERIGHTT);
-                //     If posY_top <= stage.maxTop then Dec(posY_top);
-                //     // If posY_top <= rowLimitT then Dec(posY_top);
-                // end;
-                // if (tile = DOWN) and (prev_tileT = UP) then
-                // begin
-                //     if posX > 0 then
-                //         print_game(posX - 1, posY_top - 1, SPLANERIGHTT);
-                //     print_game(posX, posY_top - 1, SPLANELEFTT);
-                // end;
-                // if (tile = PAD) and (prev_tileT = PAD) then
-                // begin
-                //     tile:= PLAIN;
-                // end;
-
+                tile:=PLAIN;
+            end;
+            // // Min limits check
+            if (posY_top <= 0) and (tile = UP) then
+            begin
+                tile:=PLAIN;
             end;
 
-            // print_game(posX, posY_top, tileset_top[tile]);
+            case tile of
+                DOWN:   begin
+                            if (prev_tileT = PLAIN) or (prev_tileT = PAD) then begin
+                                if posY_top < stage.maxTop - 1 then begin
+                                    Inc(posY_top);
+                                    print_game(posX, posY_top - 1, SPLAINLEFTT);
+                                end
+                                else begin
+                                    tile:=PAD;
+                                end;
+                            end;
+                            if prev_tileT = DOWN then begin
+                                if posY_top < stage.maxTop - 1  then begin
+                                    Inc(posY_top);
+                                    print_game(posX, posY_top - 1, SPLAINLEFTT);
+                                    print_game(posX - 1, posY_top, SSLOPERIGHTT);
+                                end
+                                else begin
+                                    tile:=PLAIN;
+                                end;
+                            end;
+                            if prev_tileT = UP then begin
+                                print_game(posX - 1, posY_top - 1, SPLAINRIGHTT);
+                                print_game(posX, posY_top - 1, SPLAINLEFTT);
+
+                            end;
+                        end;
+                UP:     begin
+                            if prev_tileT = UP then begin
+                                if (posY_top - 1 < 0 ) then begin
+                                    Dec(posY_top);
+                                    // print_game(posX - 1, posY_top, SPLAINLEFTT);
+                                    // print_game(posX, posY_top - 1, SSLOPERIGHTT);
+                                end
+                                else
+                                begin
+                                    Dec(posY_top);
+                                    tile:=PLAIN;
+                                    print_game(posX - 1, posY_top, SPLAINRIGHTT);
+                                end;
+                            end;
+                            
+                        end;
+
+                PLAIN,
+                PAD,
+                WARN:   begin
+                            if prev_tileT = UP then begin
+                                if (posY_top - 1 >= 0) then begin
+                                    Dec(posY_top);
+                                    tile:=PLAIN;
+                                    print_game(posX - 1, posY_top, SPLAINRIGHTT);
+                                end;
+                            end;
+                        end;
+            end;
+
+            print_game(posX, posY_top, tileset_top[tile]);
             prev_tileT:=tile;
         end;
 end;
