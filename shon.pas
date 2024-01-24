@@ -325,22 +325,39 @@ begin
     
 end;
 
+procedure terrainClean;
+(*
+   cleans terrain
+*)
+
+begin
+        addressTop:=SCREEN_GAME;
+        inc(addressTop, posX);
+        // erasing top + gap in the middle
+        for i:=0 to MAXHEIGHT - 1 do
+        begin
+            // we ned to clear both sides of the screen when we put tile during terrain procedure
+            Poke(addressTop, 0);
+            Poke(addressTop + VIEWWIDTH, 0);
+            Inc(addressTop, MAXWIDTH);
+        end;
+end;
+
 procedure terrainBottom;
 (*
    generates terrain on Bottom
 *)
 
 begin
-        // border:=false;
-        addressBottom:=SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - stage.maxBottom));
-        inc(addressBottom, posX);
-        for i:=0 to (stage.maxBottom - 1) do
-        begin
-            // we ned to clear both sides of the screen when we put tile during terrain procedure
-            Poke(addressBottom, 0);
-            Poke(addressBottom + VIEWWIDTH, 0);
-            inc(addressBottom, MAXWIDTH);
-        end;
+        // addressBottom:=SCREEN_GAME + (MAXWIDTH * (MAXHEIGHT - stage.maxBottom));
+        // inc(addressBottom, posX);
+        // for i:=0 to (stage.maxBottom - 1) do
+        // begin
+        //     // we ned to clear both sides of the screen when we put tile during terrain procedure
+        //     Poke(addressBottom, 0);
+        //     Poke(addressBottom + VIEWWIDTH, 0);
+        //     inc(addressBottom, MAXWIDTH);
+        // end;
 
         if stage.maxBottom > 0 then begin
             
@@ -432,16 +449,16 @@ procedure terrainTop;
 
 begin
         // Starting address is highest point when terrain can draw (posY_top)
-        addressTop:=SCREEN_GAME;
-        inc(addressTop, posX);
-        // erasing top + gap in the middle
-        for i:=0 to stage.maxTop + (MAXHEIGHT - stage.maxBottom - stage.maxTop) - 1 do
-        begin
-            // we ned to clear both sides of the screen when we put tile during terrain procedure
-            Poke(addressTop, 0);
-            Poke(addressTop + VIEWWIDTH, 0);
-            Inc(addressTop, MAXWIDTH);
-        end;
+        // addressTop:=SCREEN_GAME;
+        // inc(addressTop, posX);
+        // // erasing top + gap in the middle
+        // for i:=0 to stage.maxTop + (MAXHEIGHT - stage.maxBottom - stage.maxTop) - 1 do
+        // begin
+        //     // we ned to clear both sides of the screen when we put tile during terrain procedure
+        //     Poke(addressTop, 0);
+        //     Poke(addressTop + VIEWWIDTH, 0);
+        //     Inc(addressTop, MAXWIDTH);
+        // end;
 
         // erasing gap in the middle
         // for i:=0 to MAXHEIGHT - stage.maxBottom - stage.maxTop - 1 do
@@ -661,7 +678,8 @@ begin
                         scroll:=false;
                         currentStage:=STAGEMAX;
                     end;
-                end; 
+                end;
+                terrainClean;
                 terrainTop;
                 terrainBottom;
 
@@ -669,19 +687,20 @@ begin
             MoveRight;
         end;
 
-        if (gameTime mod 20) = 0 then
-        begin
-            print_bottom(5, 0, gameTime);
-            // print_bottom(15, 0, tile);
-            print_bottom(20, 0, stage.numeric);
+        // if (gameTime mod 20) = 0 then
+        // begin
+        //     print_bottom(5, 0, gameTime);
+        //     // print_bottom(15, 0, tile);
+        //     print_bottom(20, 0, stage.numeric);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
-            print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
+        //     print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
+        //     print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-            // print_bottom(35, 0, '  ');print_bottom(35, 0, posY_top);
-            // print_bottom(38,0, '  ');print_bottom(38, 0, posY_bottom);
+        //     // print_bottom(35, 0, '  ');print_bottom(35, 0, posY_top);
+        //     // print_bottom(38,0, '  ');print_bottom(38, 0, posY_bottom);
 
-        end;
+        // end;
+
         // if keypressed then scroll:= not scroll;
         WaitFrame;
     until keypressed;
