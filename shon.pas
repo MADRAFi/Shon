@@ -495,16 +495,17 @@ begin
                         end;
                 UP:     begin
                             if prev_tileT = UP then begin
-                                if (posY_top - 1 < 0 ) then begin
+                                if (posY_top - 1 <= 0 ) then begin
                                     Dec(posY_top);
-                                    // print_game(posX - 1, posY_top, SPLAINLEFTT);
-                                    // print_game(posX, posY_top - 1, SSLOPERIGHTT);
+                                    tile:=PLAIN;
+                                    print_game(posX - 1, posY_top, SPLAINRIGHTT);
                                 end
                                 else
                                 begin
                                     Dec(posY_top);
-                                    tile:=PLAIN;
                                     print_game(posX - 1, posY_top, SPLAINRIGHTT);
+                                    print_game(posX, posY_top + 1, SSLOPELEFTT);
+                                    
                                 end;
                             end;
                             
