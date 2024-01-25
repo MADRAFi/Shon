@@ -4,7 +4,7 @@ uses atari, crt, joystick, rmt, sysutils;
 
 const
 {$i const.inc}
-
+{$i types.inc}                  // including defined type
 
     // 
 	// fnt_Title: array [0..29] of byte = (
@@ -43,34 +43,12 @@ const
 	// );
 
 var
-  p_spriteFrames: byte = $01;
-  p_spriteHeight: byte = $11;
-  p_spriteGap: byte = $00;
-
-  p_colors0: array [0..$01] of byte = (
-    $00, $0e
-  );
-  p_colors1: array [0..$01] of byte = (
-    $00, $16
-  );
-
-// sprite 0 data
-  p_frames0_0: array [0..$10] of byte = (
-    $00, $00, $00, $00, $18, $00, $18, $3e, $3f, $3e, $18, $00, $18, $00, $00, $00,
-    $00
-  );
-
-// sprite 1 data
-  p_frames1_0: array [0..$10] of byte = (
-    $10, $00, $10, $18, $18, $18, $3e, $3f, $01, $3f, $3e, $18, $18, $18, $10, $00,
-    $10
-  );
-
 
 {$r resources.rc}               // including resource files with all assets
-{$i types.inc}                  // including defined type
+{$i sprites/player.inc}
 
-var
+
+
     gamestate: TGameState;
     music: Boolean;
 
@@ -106,12 +84,15 @@ var
     playerY: Byte;
     joy: Byte;
 
-    tile: TTerrain = NONE;
-    prev_tileT: TTerrain = NONE;
-    prev_tileB: TTerrain = NONE;
+    tile: byte = NONE;
+    prev_tileT: byte = NONE;
+    prev_tileB: byte = NONE;
+    rocket: byte = NONE;
 
     // gameTime counter
     gameTime: Word;
+    rndNumber1: byte;
+    rndNumber2: byte;
 
     currentStage: byte;
     stage: ^TStage;
@@ -124,6 +105,8 @@ var
     tileset_top: array [0..TILEMAX-1] of Byte = (SUPT, SPLAINT, SDOWNT, SPADT, SWARN);
     tileset_bottom: array [0..TILEMAX-1] of Byte = (SUPB, SPLAINB, SDOWNB, SPADB, SWARN);
 
+    tile_rocket_head: array [0..TILEROCKETMAX-1] of Byte = (SHEAD1, SHEAD2, SHEAD3, SHEAD4);
+    tile_rocket_engine: array [0..TILEROCKETMAX-1] of Byte = (SENGINE1, SENGINE2, SENGINE3, SENGINE4);
 
 {$i 'strings.inc'}
 {$i interrupts.inc}
@@ -280,15 +263,21 @@ begin
     until s = gameTime div 60;
 end;
 
-function RandomTile : TTerrain;
+// function RandomTile : TTerrain;
+// begin
+//     i:=Random(0) and 3;
+//     case i of
+//         0: Result:=UP;
+//         1: Result:=PLAIN;
+//         2: Result:=DOWN;
+//         3: Result:=PAD;
+//     end;
+// end;
+
+function RandomTile : Byte;
 begin
-    i:=Random(0) and 3;
-    case i of
-        0: Result:=UP;
-        1: Result:=PLAIN;
-        2: Result:=DOWN;
-        3: Result:=PAD;
-    end;
+    // Result:=Random(0) and 3;
+    Result:=Random(4);
 end;
 
 procedure PMGInit;inline;
@@ -401,8 +390,8 @@ begin
     pcolr1 := p_colors1[1];
     hposp0 := x;
     hposp1 := x + p_spriteGap;
-    // hposm0 := x;
-    // hposm1 := x;
+    // hposm0 := 0;
+    // hposm1 := 0;
     // hposp2 := 0;
     // hposp3 := 0;
 
@@ -410,6 +399,22 @@ begin
     fillbyte(pointer(PMG_BASE + $500 + y + p_spriteHeight+1), 1, 0);
     Move(@p_frames0_0, pointer(PMG_BASE + $400 + y), p_spriteHeight);
     Move(@p_frames1_0, pointer(PMG_BASE + $500 + y), p_spriteHeight);
+end;
+
+procedure playerMissles(x, y: byte);
+(*
+   draws missles
+*)
+
+begin
+    // pcolr0 := p_colors0[1];
+    // pcolr1 := p_colors1[1];
+
+    // hposm0 := 0;
+    // hposm1 := 0;
+    // hposp2 := 0;
+    // hposp3 := 0;
+
 end;
 
 procedure enemies;
@@ -456,7 +461,7 @@ begin
 
         if stage.maxBottom > 0 then begin
             
-            tile:=RandomTile;
+            tile:=rndNumber1;
 
 
             // Max limits check
@@ -565,7 +570,8 @@ begin
         // end;
 
         if stage.maxTop > 0 then begin
-            tile:=RandomTile;
+
+            tile:=rndNumber2;
             
              // Max limits check
             If (posY_top >= stage.maxTop) and (tile = DOWN) then
@@ -642,6 +648,20 @@ begin
         end;
 end;
 
+procedure rockets;
+(*
+   generates rockets
+*)
+
+begin
+        if stage.maxBottom > 0 then begin
+            if tile = PAD then begin
+                print_game(posX, posY_Bottom - 1, tile_rocket_engine[rndNumber2]);
+                print_game(posX, posY_Bottom - 2, tile_rocket_head[rndNumber1]);
+
+            end;
+        end;
+end;
 
 procedure MoveRight;
 (*
@@ -778,9 +798,12 @@ begin
                         currentStage:=STAGEMAX;
                     end;
                 end;
+                rndNumber1:=Random(4);
+                rndNumber2:=Random(4);
                 terrainClean;
                 terrainTop;
                 terrainBottom;
+                rockets;
 
             end;
             MoveRight;
@@ -790,14 +813,14 @@ begin
         begin
 
             print_bottom(5, 0, gameTime);
-            // print_bottom(15, 0, tile);
+            // print_bottom(15, 0, );
             print_bottom(20, 0, stage.numeric);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
-            print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
+            // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
+            // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-            // print_bottom(35, 0, '  ');print_bottom(35, 0, posY_top);
-            // print_bottom(38,0, '  ');print_bottom(38, 0, posY_bottom);
+            print_bottom(35, 0, '  ');print_bottom(35, 0, rndNumber1);
+            print_bottom(38,0, '  ');print_bottom(38, 0, rndNumber2);
 
         end;
 

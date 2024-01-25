@@ -13,4 +13,4 @@ end;
 
 type
    TGameState = (NEWGAME=0, GAMEINPROGRESS=1, GAMEOVER=2);
-   TTerrain = (UP=0, PLAIN=1, DOWN=2, PAD=3, WARN=4);
+   // TTerrain = (UP=0, PLAIN=1, DOWN=2, PAD=3, WARN=4);
