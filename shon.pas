@@ -42,6 +42,30 @@ const
 	// 	$FC,$FC,$FC,$FC,$FC,$00
 	// );
 
+var
+  p_spriteFrames: byte = $01;
+  p_spriteHeight: byte = $11;
+  p_spriteGap: byte = $00;
+
+  p_colors0: array [0..$01] of byte = (
+    $00, $0e
+  );
+  p_colors1: array [0..$01] of byte = (
+    $00, $16
+  );
+
+// sprite 0 data
+  p_frames0_0: array [0..$10] of byte = (
+    $00, $00, $00, $00, $18, $00, $18, $3e, $3f, $3e, $18, $00, $18, $00, $00, $00,
+    $00
+  );
+
+// sprite 1 data
+  p_frames1_0: array [0..$10] of byte = (
+    $10, $00, $10, $18, $18, $18, $3e, $3f, $01, $3f, $3e, $18, $18, $18, $10, $00,
+    $10
+  );
+
 
 {$r resources.rc}               // including resource files with all assets
 {$i types.inc}                  // including defined type
@@ -57,6 +81,7 @@ var
     // accessory variables in loops
     // x: Byte; 
     i: Byte;
+    key: Byte;
     tmp: TString;
     addressTop: Word;
     addressBottom: Word;
@@ -75,6 +100,11 @@ var
     posX: Byte;
     posY_top: Byte;
     posY_bottom: Byte;
+
+    // player position
+    playerX: Byte;
+    playerY: Byte;
+    joy: Byte;
 
     tile: TTerrain = NONE;
     prev_tileT: TTerrain = NONE;
@@ -260,8 +290,53 @@ begin
         3: Result:=PAD;
     end;
 end;
+
+procedure PMGInit;inline;
+begin
+    pmbase := Hi(PMG_BASE);
+    sdmctl := %00111110;
+    // sdmctl := byte(normal or enable or missiles or players or oneline);
+    gractl := %00000011;
+    gprior := %00100001;
+    pcolr2 := 0;
+    pcolr3 := 0;
+    sizep0 := 2;
+    sizep1 := 2;
+    sizep2 := 1;
+    sizep3 := 1;
+    sizem := %00000101;
+end;
+
 // -----------------------------------------------------------------------------
 
+procedure ReadInput;
+begin
+        if (skstat and 4 = 0) then 
+            key := kbcode and %00111111;
+    
+        // joy := stick0 and %1111;
+        joy := stick0;
+        // if (joy <> 15) or (key <> NONE) then begin
+            if ((joy and %0100) = 0) or (key = KEY_LEFT_CODE) then begin  
+                dec(playerX);
+                if playerX<48 then playerX:=48;
+            end;
+            if ((joy and %1000) = 0) or (key = KEY_RIGHT_CODE) then begin
+                Inc(playerX);
+                if playerX>200 then playerX:=200;
+            end;
+            if ((joy and %0001) = 0) or (key = KEY_UP_CODE) then begin
+                Dec(playerY,2);
+                if playerY<12 then playerY:=12;
+            end;
+            if ((joy and %0010) = 0) or (key = KEY_DOWN_CODE) then begin
+                Inc(playerY,2);
+                if playerY>162 then playerY:=162;
+            end;
+            
+        // end;
+
+end;
 
 
 procedure initLevel;
@@ -316,13 +391,33 @@ begin
     posY_bottom:= MAXHEIGHT - 1;
 end;
 
+procedure player(x, y: byte);
+(*
+   draws player
+*)
+
+begin
+    pcolr0 := p_colors0[1];
+    pcolr1 := p_colors1[1];
+    hposp0 := x;
+    hposp1 := x + p_spriteGap;
+    // hposm0 := x;
+    // hposm1 := x;
+    // hposp2 := 0;
+    // hposp3 := 0;
+
+    fillbyte(pointer(PMG_BASE + $500 + y - 2), 1, 0);
+    fillbyte(pointer(PMG_BASE + $500 + y + p_spriteHeight+1), 1, 0);
+    Move(@p_frames0_0, pointer(PMG_BASE + $400 + y), p_spriteHeight);
+    Move(@p_frames1_0, pointer(PMG_BASE + $500 + y), p_spriteHeight);
+end;
 
 procedure enemies;
 (*
    generates enemies
 *)
 begin
-    
+
 end;
 
 procedure terrainClean;
@@ -512,14 +607,15 @@ begin
                         end;
                 UP:     begin
                             if prev_tileT = UP then begin
+                                Dec(posY_top);
                                 if (posY_top - 1 <= 0 ) then begin
-                                    Dec(posY_top);
+                                    // Dec(posY_top);
                                     tile:=PLAIN;
                                     print_game(posX - 1, posY_top, SPLAINRIGHTT);
                                 end
                                 else
                                 begin
-                                    Dec(posY_top);
+                                    // Dec(posY_top);
                                     print_game(posX - 1, posY_top, SPLAINRIGHTT);
                                     print_game(posX, posY_top + 1, SSLOPELEFTT);
                                     
@@ -663,6 +759,9 @@ begin
     // end;
 
 
+    playerX:= 100;
+    playerY:= 100;
+
     repeat
 
         if scroll then
@@ -687,23 +786,27 @@ begin
             MoveRight;
         end;
 
-        // if (gameTime mod 20) = 0 then
-        // begin
-        //     print_bottom(5, 0, gameTime);
-        //     // print_bottom(15, 0, tile);
-        //     print_bottom(20, 0, stage.numeric);
+        if (gameTime mod 20) = 0 then
+        begin
 
-        //     print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
-        //     print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
+            print_bottom(5, 0, gameTime);
+            // print_bottom(15, 0, tile);
+            print_bottom(20, 0, stage.numeric);
 
-        //     // print_bottom(35, 0, '  ');print_bottom(35, 0, posY_top);
-        //     // print_bottom(38,0, '  ');print_bottom(38, 0, posY_bottom);
+            print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
+            print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-        // end;
+            // print_bottom(35, 0, '  ');print_bottom(35, 0, posY_top);
+            // print_bottom(38,0, '  ');print_bottom(38, 0, posY_bottom);
 
+        end;
+
+        ReadInput;
+        player(playerX, playerY);
+        
         // if keypressed then scroll:= not scroll;
         WaitFrame;
-    until keypressed;
+    until false;
     
     //temporarly to test loop
     gamestate:= GAMEOVER
@@ -729,7 +832,7 @@ begin
     msx.Init(0);
     
     chrctl:=$02;
-    sdmctl := byte(normal or enable or missiles or players or oneline);
+    PMGInit;
 
 (*  set and run vbl interrupt *)
     GetIntVec(iVBL, old_vbl);
@@ -738,7 +841,7 @@ begin
     nmien := $c0;			// $D40E = $C0, Enable DLI
     
 (*  your code goes here *)
-     
+    
     music:=false;    
     gamestate:= GAMEINPROGRESS; // NEWGAME;
 
