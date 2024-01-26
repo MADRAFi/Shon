@@ -80,13 +80,37 @@ TILEROCKETMAX = 4;
 
 SENGINE1 = 66;
 SENGINE2 = 67;
-SENGINE3 = 68;
+SENGINE3 = 72;
 SENGINE4 = 69;
 
 SHEAD1 = 11;
 SHEAD2 = 12;
 SHEAD3 = 13;
 SHEAD4 = 14;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TILETOWERMAX = 4;
+
+SBASET1 = 112;
+SBASET2 = 113;
+SBASET3 = 114;
+SBASET4 = 112;
+
+STOPT1 = 116;
+STOPT2 = 117;
+STOPT3 = 118;
+STOPT4 = 119;
+
+SBASEB1 = 97;
+SBASEB2 = 98;
+SBASEB3 = 99;
+SBASEB4 = 82;
+
+STOPB1 = 84;
+STOPB2 = 85;
+STOPB3 = 86;
+STOPB4 = 87;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

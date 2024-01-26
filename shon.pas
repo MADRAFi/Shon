@@ -72,8 +72,13 @@ var
     newlms: Word;
     lms: Word;
     vi: Byte; // iteration in vbl interrupt
-
-
+    // values are based on MAXWIDTH const
+    row_max: array [0..MAXHEIGHT-1] of Word = (
+        0, 96, 192, 288, 384, 480, 576, 672, 768, 864, 960, 1056, 1152, 1248, 1344, 1440, 1536, 1632, 1728, 1824, 1920
+    );
+    row_view: array [0..2] of Byte = (
+        0, 40, 80
+    );
     // terrain positions
     posX: Byte;
     posY_top: Byte;
@@ -84,10 +89,10 @@ var
     playerY: Byte;
     joy: Byte;
 
-    tile: byte = NONE;
+    tileT: byte = NONE;
+    tileB: byte = NONE;
     prev_tileT: byte = NONE;
     prev_tileB: byte = NONE;
-    rocket: byte = NONE;
 
     // gameTime counter
     gameTime: Word;
@@ -105,8 +110,13 @@ var
     tileset_top: array [0..TILEMAX-1] of Byte = (SUPT, SPLAINT, SDOWNT, SPADT, SWARN);
     tileset_bottom: array [0..TILEMAX-1] of Byte = (SUPB, SPLAINB, SDOWNB, SPADB, SWARN);
 
-    tile_rocket_head: array [0..TILEROCKETMAX-1] of Byte = (SHEAD1, SHEAD2, SHEAD3, SHEAD4);
-    tile_rocket_engine: array [0..TILEROCKETMAX-1] of Byte = (SENGINE1, SENGINE2, SENGINE3, SENGINE4);
+    rocket_head: array [0..TILEROCKETMAX-1] of Byte = (SHEAD1, SHEAD2, SHEAD3, SHEAD4);
+    rocket_engine: array [0..TILEROCKETMAX-1] of Byte = (SENGINE1, SENGINE2, SENGINE3, SENGINE4);
+
+    tower_head_top: array [0..TILETOWERMAX-1] of Byte = (STOPT1, STOPT2, STOPT3, STOPT4);
+    tower_base_top: array [0..TILETOWERMAX-1] of Byte = (SBASET1, SBASET2, SBASET3, SBASET4);
+    tower_head_bottom: array [0..TILETOWERMAX-1] of Byte = (STOPB1, STOPB2, STOPB3, STOPB4);
+    tower_base_bottom: array [0..TILETOWERMAX-1] of Byte = (SBASEB1, SBASEB2, SBASEB3, SBASEB4);
 
 {$i 'strings.inc'}
 {$i interrupts.inc}
@@ -152,8 +162,7 @@ procedure print_bottom( x, y: Byte; d: Cardinal);overload;
 begin
     tmp:=IntToStr(d);
     Str2Antic(tmp);
-
-    addressBottom:=SCREEN_BOTTOM + ((VIEWWIDTH - 8) * y) + x;
+    addressBottom:=SCREEN_BOTTOM + row_view[y] + x;
     move(tmp[1], pointer(addressBottom), Length(tmp));  
 end;
 
@@ -161,10 +170,10 @@ end;
 procedure print_game(x: Byte; y: Byte; b: Byte);overload;
 // prints byte at x,y position in left and right game area
 begin
-    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + VIEWWIDTH + x;
+    // addressTop:=SCREEN_GAME + (MAXWIDTH * y) + x;
+    addressTop:=SCREEN_GAME + row_max[y] + x;
     Poke(addressTop, b);
-    addressTop:=SCREEN_GAME + (MAXWIDTH * y) + x;
-    Poke(addressTop, b);
+    Poke(addressTop + VIEWWIDTH, b);
 end;
 
 procedure print_right(x: Byte; y: Byte; b: Byte);overload;
@@ -263,22 +272,11 @@ begin
     until s = gameTime div 60;
 end;
 
-// function RandomTile : TTerrain;
+// function RandomTile : Byte;
 // begin
-//     i:=Random(0) and 3;
-//     case i of
-//         0: Result:=UP;
-//         1: Result:=PLAIN;
-//         2: Result:=DOWN;
-//         3: Result:=PAD;
-//     end;
+//     Result:=rnd and 3;
+//     // Result:=Random(4);
 // end;
-
-function RandomTile : Byte;
-begin
-    // Result:=Random(0) and 3;
-    Result:=Random(4);
-end;
 
 procedure PMGInit;inline;
 begin
@@ -461,21 +459,22 @@ begin
 
         if stage.maxBottom > 0 then begin
             
-            tile:=rndNumber1;
+            tileB:=rnd and (TILEMAX - 2); // do not use WARN tile
+            // tileB:=rnd and 3; // do not use WARN tile
 
 
             // Max limits check
-            If (posY_bottom <= MAXHEIGHT - stage.maxBottom) and (tile = UP) then
+            If (posY_bottom <= MAXHEIGHT - stage.maxBottom) and (tileB = UP) then
             begin
-                tile:=PLAIN;
+                tileB:=PLAIN;
             end;
             // Min limits check
-            if (posY_bottom >= MAXHEIGHT - 1) and (tile = DOWN) then
+            if (posY_bottom >= MAXHEIGHT - 1) and (tileB = DOWN) then
             begin
-                tile:=PLAIN;
+                tileB:=PLAIN;
             end;
 
-            case tile of
+            case tileB of
                 UP:     begin
                             if (prev_tileB = PLAIN) or (prev_tileB = PAD) then begin
                                 if posY_bottom > MAXHEIGHT - stage.maxBottom then begin
@@ -483,7 +482,7 @@ begin
                                     print_game(posX, posY_bottom + 1, SPLAINRIGHTB);
                                 end
                                 else begin
-                                    tile:=PAD;
+                                    tileB:=PAD;
                                 end;
 
                             end;
@@ -494,7 +493,7 @@ begin
                                     print_game(posX - 1, posY_bottom, SSLOPELEFTB);
                                 end
                                 else begin
-                                    tile:=PLAIN;
+                                    tileB:=PLAIN;
                                 end;
                             end;
                             if prev_tileB = DOWN then begin
@@ -506,7 +505,7 @@ begin
                 DOWN:   begin
 
                             if (prev_tileB = PLAIN) or (prev_tileB = PAD) then begin
-                                if posY_bottom >= MAXHEIGHT - 1 then tile:=PLAIN;
+                                if posY_bottom >= MAXHEIGHT - 1 then tileB:=PLAIN;
                             end;
 
                             if prev_tileB = DOWN then begin
@@ -517,7 +516,7 @@ begin
                                 end
                                 else
                                 begin
-                                    tile:=PLAIN;
+                                    tileB:=PLAIN;
                                     print_game(posX - 1, posY_bottom, SPLAINLEFTB);
                                 end;
                             end;
@@ -529,15 +528,15 @@ begin
                             if prev_tileB = DOWN then begin
                                 if posY_bottom < MAXHEIGHT - 1 then begin
                                     Inc(posY_bottom);
-                                    tile:=PLAIN;
+                                    tileB:=PLAIN;
                                     print_game(posX - 1, posY_bottom, SPLAINLEFTB);
                                 end;
                             end;
                         end;
             end;
             
-            print_game(posX, posY_bottom, tileset_bottom[tile]);
-            prev_tileB:=tile;
+            print_game(posX, posY_bottom, tileset_bottom[tileB]);
+            prev_tileB:=tileB;
         end;
 end;
 
@@ -571,20 +570,20 @@ begin
 
         if stage.maxTop > 0 then begin
 
-            tile:=rndNumber2;
+            tileT:=rnd and (TILEMAX - 2); // do not use WARN tile
             
              // Max limits check
-            If (posY_top >= stage.maxTop) and (tile = DOWN) then
+            If (posY_top >= stage.maxTop) and (tileT = DOWN) then
             begin
-                tile:=PLAIN;
+                tileT:=PLAIN;
             end;
             // // Min limits check
-            if (posY_top <= 0) and (tile = UP) then
+            if (posY_top <= 0) and (tileT = UP) then
             begin
-                tile:=PLAIN;
+                tileT:=PLAIN;
             end;
 
-            case tile of
+            case tileT of
                 DOWN:   begin
                             if (prev_tileT = PLAIN) or (prev_tileT = PAD) then begin
                                 if posY_top < stage.maxTop - 1 then begin
@@ -592,7 +591,7 @@ begin
                                     print_game(posX, posY_top - 1, SPLAINLEFTT);
                                 end
                                 else begin
-                                    tile:=PAD;
+                                    tileT:=PAD;
                                 end;
                             end;
                             if prev_tileT = DOWN then begin
@@ -602,7 +601,7 @@ begin
                                     print_game(posX - 1, posY_top, SSLOPERIGHTT);
                                 end
                                 else begin
-                                    tile:=PLAIN;
+                                    tileT:=PLAIN;
                                 end;
                             end;
                             if prev_tileT = UP then begin
@@ -616,7 +615,7 @@ begin
                                 Dec(posY_top);
                                 if (posY_top - 1 <= 0 ) then begin
                                     // Dec(posY_top);
-                                    tile:=PLAIN;
+                                    tileT:=PLAIN;
                                     print_game(posX - 1, posY_top, SPLAINRIGHTT);
                                 end
                                 else
@@ -636,15 +635,15 @@ begin
                             if prev_tileT = UP then begin
                                 if (posY_top - 1 >= 0) then begin
                                     Dec(posY_top);
-                                    tile:=PLAIN;
+                                    tileT:=PLAIN;
                                     print_game(posX - 1, posY_top, SPLAINRIGHTT);
                                 end;
                             end;
                         end;
             end;
 
-            print_game(posX, posY_top, tileset_top[tile]);
-            prev_tileT:=tile;
+            print_game(posX, posY_top, tileset_top[tileT]);
+            prev_tileT:=tileT;
         end;
 end;
 
@@ -654,14 +653,43 @@ procedure rockets;
 *)
 
 begin
-        if stage.maxBottom > 0 then begin
-            if tile = PAD then begin
-                print_game(posX, posY_Bottom - 1, tile_rocket_engine[rndNumber2]);
-                print_game(posX, posY_Bottom - 2, tile_rocket_head[rndNumber1]);
-
+        if (stage.maxBottom > 0) and (stage.maxTop = 0) then begin
+            if tileB = PAD then begin
+                rndNumber1:=rnd and (TILEROCKETMAX - 1);
+                rndNumber2:=rnd and (TILEROCKETMAX - 1);
+                print_game(posX, posY_Bottom - 1, rocket_engine[rndNumber2]);
+                print_game(posX, posY_Bottom - 2, rocket_head[rndNumber1]);
             end;
         end;
 end;
+
+
+procedure towers;
+(*
+   generates towers
+*)
+
+begin   
+        if stage.maxTop > 0 then begin
+            if tileT = PAD then begin
+                rndNumber1:=rnd and (TILETOWERMAX - 1);
+                rndNumber2:=rnd and (TILETOWERMAX - 1);
+                print_game(posX, posY_Top + 1, tower_base_top[rndNumber1]);
+                print_game(posX, posY_Top + 2, tower_head_top[rndNumber2]);
+            end;
+        end;
+
+
+        if stage.maxBottom > 0 then begin
+            if tileB = PAD then begin
+                rndNumber1:=rnd and (TILETOWERMAX - 1);
+                rndNumber2:=rnd and (TILETOWERMAX - 1);
+                print_game(posX, posY_Bottom - 1, tower_base_bottom[rndNumber2]);
+                print_game(posX, posY_Bottom - 2, tower_head_bottom[rndNumber1]);
+            end;
+        end;
+end;
+
 
 procedure MoveRight;
 (*
@@ -798,12 +826,12 @@ begin
                         currentStage:=STAGEMAX;
                     end;
                 end;
-                rndNumber1:=Random(4);
-                rndNumber2:=Random(4);
+
                 terrainClean;
                 terrainTop;
                 terrainBottom;
                 rockets;
+                towers;
 
             end;
             MoveRight;
