@@ -87,6 +87,7 @@ var
     // player position
     playerX: Byte;
     playerY: Byte;
+    playerExplode: Boolean;
     joy: Byte;
 
     tileT: byte = NONE;
@@ -176,47 +177,47 @@ begin
     Poke(addressTop + VIEWWIDTH, b);
 end;
 
-procedure print_right(x: Byte; y: Byte; b: Byte);overload;
-// prints byte at x,y position in right game area
-begin
-    Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
-end;
+// procedure print_right(x: Byte; y: Byte; b: Byte);overload;
+// // prints byte at x,y position in right game area
+// begin
+//     Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x, b);
+// end;
 
-procedure print_right(x: Byte; y: Byte; s: String);overload;
-// prints byte at x,y position in right game area
-begin
-    for i:=1 to byte(s[0]) do
-    begin
-        Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
-    end;    
-end;
+// procedure print_right(x: Byte; y: Byte; s: String);overload;
+// // prints byte at x,y position in right game area
+// begin
+//     for i:=1 to byte(s[0]) do
+//     begin
+//         Poke(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH div 2) + x + i, byte(s[i]));
+//     end;    
+// end;
 
-procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
-// prints streight line equal to n at x,y position in game area
-begin
-    for i:=0 to n - 1 do
-    begin
-        print_right(x + i, y, sign);
-    end;    
-end;
+// procedure print_line(x: Byte; y: Byte; n: Byte; sign: Byte);
+// // prints streight line equal to n at x,y position in game area
+// begin
+//     for i:=0 to n - 1 do
+//     begin
+//         print_right(x + i, y, sign);
+//     end;    
+// end;
 
-procedure print_box_right(x: Byte; y: Byte; s: String; txtcolor: Byte);
-// draws a box at x,y position with a text inside and using c as color
-const
-    frmcolor = $0e;     // color used for frame drawing
+// procedure print_box_right(x: Byte; y: Byte; s: String; txtcolor: Byte);
+// // draws a box at x,y position with a text inside and using c as color
+// const
+//     frmcolor = $0e;     // color used for frame drawing
 
-begin
-    color1:=frmcolor;
-    print_line(x, y, byte(s[0]) + 8, SFRAMEINV);
-    print_right(x, y + 1, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SFRAMEINV);
-    print_right(x, y + 2, SFRAMEINV); 
-    color1:=txtcolor;                   
-    print_right(x + 3, y + 2, s);
-    color1:=frmcolor;
-    print_right(x + byte(s[0]) + 7, y + 2, SFRAMEINV);
-    print_right(x, y + 3, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SFRAMEINV);
-    print_line(x, y + 4, byte(s[0]) + 8, SFRAMEINV);
-end;
+// begin
+//     color1:=frmcolor;
+//     print_line(x, y, byte(s[0]) + 8, SFRAMEINV);
+//     print_right(x, y + 1, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 1, SFRAMEINV);
+//     print_right(x, y + 2, SFRAMEINV); 
+//     color1:=txtcolor;                   
+//     print_right(x + 3, y + 2, s);
+//     color1:=frmcolor;
+//     print_right(x + byte(s[0]) + 7, y + 2, SFRAMEINV);
+//     print_right(x, y + 3, SFRAMEINV); print_right(x + byte(s[0]) + 7, y + 3, SFRAMEINV);
+//     print_line(x, y + 4, byte(s[0]) + 8, SFRAMEINV);
+// end;
 
 procedure clear_game(min_row: Byte; max_row: Byte);
 // clears game screen
@@ -237,23 +238,23 @@ begin
     // end;
 end;
 
-procedure clear_box_right(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
-// clears box sizex,sizey at x,y in game screen
-begin
-    for i:=0 to sizeY - 1 do
-    begin
-        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + (MAXWIDTH div 2) + x), sizeX, 0);
-    end;
-end;
+// procedure clear_box_right(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// // clears box sizex,sizey at x,y in game screen
+// begin
+//     for i:=0 to sizeY - 1 do
+//     begin
+//         fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + (MAXWIDTH div 2) + x), sizeX, 0);
+//     end;
+// end;
 
-procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
-// clears box sizex,sizey at x,y in game screen
-begin
-    for i:=0 to sizeY - 1 do
-    begin
-        fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + x), sizeX, 64);
-    end;
-end;
+// procedure clear_box(x: Byte; y: Byte; sizeX:byte; sizeY:Byte);
+// // clears box sizex,sizey at x,y in game screen
+// begin
+//     for i:=0 to sizeY - 1 do
+//     begin
+//         fillbyte(pointer(SCREEN_GAME + (MAXWIDTH * y) + (MAXWIDTH * i) + x), sizeX, 64);
+//     end;
+// end;
 
 procedure WaitFrame;
 begin
@@ -341,6 +342,7 @@ begin
     stage1.minBottom:= 2;
     stage1.maxBottom:= 5;
     stage1.len:= 2000;
+    stage1.color:=$0e;
 
     stage2.name:= 'Stage 2';
     stage2.numeric:= 2;
@@ -349,6 +351,7 @@ begin
     stage2.minBottom:= 8;
     stage2.maxBottom:= 15;
     stage2.len:= 1200;
+    stage2.color:=$0e;
 
     stage3.name:= 'Stage 3';
     stage3.numeric:= 3;
@@ -357,6 +360,7 @@ begin
     stage3.minBottom:= 1;
     stage3.maxBottom:= 3;
     stage3.len:= 1200;
+    stage3.color:=$0e;
 
     stage4.name:= 'Stage 4';
     stage4.numeric:= 4;
@@ -365,10 +369,12 @@ begin
     stage4.minBottom:= 7;
     stage4.maxBottom:= 10;
     stage4.len:= 600;
+    stage4.color:=$0e;
 
     // load stage data
     currentStage:=1;
     stage:=Pointer(levelStages[currentStage-1]);
+    color1:=stage.color;
     gameTime:=0;
     scroll:= true;
 
@@ -376,6 +382,11 @@ begin
     posX:=0;
     posY_top:= 0;
     posY_bottom:= MAXHEIGHT - 1;
+
+    playerExplode:=false;
+    playerX:= 100;
+    playerY:= 100;
+
 end;
 
 procedure player(x, y: byte);
@@ -736,6 +747,23 @@ begin
 	Inc(gameTime);
 end;
 
+
+procedure collisionDetection;
+
+begin
+    // if colorCollision and ((PMG_hposm1 or PMG_hposm0) and 2 <> 0) then Explode
+
+    // player collision
+    // if stage.color and ((p_colors0[1] and hposp0) or (p_colors1[1] and hposp1)) and  <> 0 then playerExplode:=true;
+    // if ((hposm0 and %0001 <> 0) or (hposm0 and %0010) <> 0) then playerExplode:=true;
+
+    if ((hposm1 or hposm0) and %0001 <> 0) then playerExplode:=true;
+
+    
+    // reset collision detection
+    hitclr:=$ff;
+end;
+
 // -----------------------------------------------------------------------------
 
 procedure show_title;
@@ -785,7 +813,7 @@ begin
     fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
 
     // CRT_Init(SCREEN_BOTTOM, VIEWWIDTH - 8,1);
-    color1:=$0e;
+    // color1:=$0e;
     // color4:=2;
     // print_bottom(0,strings[1]);
 
@@ -806,10 +834,6 @@ begin
     //     end;
     // end;
 
-
-    playerX:= 100;
-    playerY:= 100;
-
     repeat
 
         if scroll then
@@ -820,6 +844,7 @@ begin
                     if currentStage < STAGEMAX then begin
                         Inc(currentStage);
                         stage:=Pointer(levelStages[currentStage-1]);
+                        color1:=stage.color;
                     end else
                     begin
                         scroll:=false;
@@ -828,10 +853,11 @@ begin
                 end;
 
                 terrainClean;
-                terrainTop;
+                // terrainTop;
                 terrainBottom;
-                rockets;
-                towers;
+                // rockets;
+                // towers;
+                collisionDetection;
 
             end;
             MoveRight;
@@ -847,13 +873,20 @@ begin
             // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
             // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, rndNumber1);
-            print_bottom(38,0, '  ');print_bottom(38, 0, rndNumber2);
+            print_bottom(35, 0, '  ');print_bottom(35, 0, hposm0);
+            print_bottom(38,0, '  ');print_bottom(38, 0, hposm1);
 
         end;
 
-        ReadInput;
-        player(playerX, playerY);
+        if not playerExplode then begin
+            ReadInput;
+            player(playerX, playerY);
+        end else
+        begin
+            scroll:=false;
+            pcolr0 := p_colors0[0];
+            pcolr1 := p_colors1[0];
+        end;
         
         // if keypressed then scroll:= not scroll;
         WaitFrame;

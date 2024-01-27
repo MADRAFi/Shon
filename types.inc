@@ -9,6 +9,7 @@ type TStage = record
    minBottom: byte;
    maxBottom: byte;
    len: word;
+   color: byte;
 end;
 
 type

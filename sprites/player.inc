@@ -3,10 +3,10 @@
   p_spriteGap: byte = $00;
 
   p_colors0: array [0..$01] of byte = (
-    $00, $0e
+    $0e, $0e
   );
   p_colors1: array [0..$01] of byte = (
-    $00, $16
+    $0e, $16
   );
 
 // player sprite 0 data
