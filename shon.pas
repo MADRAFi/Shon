@@ -70,11 +70,12 @@ var
     // variables used for scroll
     hposition: Byte;
     scroll: Boolean;
+    animrockets: Boolean;
 
     newlms: Word;
     lms: Word;
     vi: Byte; // iteration in vbl interrupt
-
+    debval: byte;
 
     // values are based on MAXWIDTH const to replace multiply in row calculation y * MAXWIDTH
     row_max: array [0..MAXHEIGHT-1] of Word = (
@@ -383,6 +384,7 @@ begin
     stage:=Pointer(levelStages[currentStage-1]);
     color1:=stage.color;
     gameTime:=0;
+    animrockets:=true;
     scroll:= true;
 
     // setting starting position for terrain
@@ -678,8 +680,11 @@ begin
                 print_game(posX, posY_Bottom - 1, rocket_engine[rndNumber2]);
                 print_game(posX, posY_Bottom - 2, rocket_head[rndNumber1]);
 
-                rocket_loc[posX]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX;
-                rocket_loc[posX+VIEWWIDTH]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX + VIEWWIDTH;
+                // do not rememeber all rocket locations for animation, they will remain stationary
+                if (rndNumber1 > 1) and (rndNumber2 > 1) then begin
+                    rocket_loc[posX]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX;
+                    rocket_loc[posX+VIEWWIDTH]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX + VIEWWIDTH;
+                end;
             end;
         
 
@@ -715,8 +720,10 @@ begin
     //         end;
     //     end;
     // end;
-
-        for i:=0 to VIEWWIDTH-1 do begin
+    // if animrockets then begin
+        // t:=0;
+        // while t < MAXROCKETSLAUNCH-1 do begin
+        for i:=0 to MAXWIDTH - 1 do begin
             if (rocket_loc[i] <> 0) and (rocket_loc[i+VIEWWIDTH] <> 0) then begin
 
                 if (rocket_loc[i] - MAXWIDTH > SCREEN_GAME) and (rocket_loc[i+VIEWWIDTH] - MAXWIDTH > SCREEN_GAME) then begin
@@ -749,6 +756,7 @@ begin
                     end;
                 end;
             end;
+            // inc(t);
         end;
     // end;
 end;
@@ -814,7 +822,6 @@ begin
             dpoke(lms, newlms);
             Inc(lms,3)
         end;
-
         Inc(posX);
     end;
 
@@ -910,6 +917,12 @@ begin
     // end;
 
     repeat
+        // if (gameTime mod 200) = 0 then begin
+        //     animrockets:=true;
+        // end;
+        // if (gameTime mod 96) = 0 then begin
+        //     animrockets:=false;
+        // end;
 
         if scroll then
         begin
@@ -949,10 +962,12 @@ begin
             // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
             // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, hposm1 and 1);
-            print_bottom(38,0, '  ');print_bottom(38, 0, hposm1 and 2);
+            print_bottom(35, 0, '  ');print_bottom(35, 0, t);
+            print_bottom(38,0, '  ');print_bottom(38, 0, debval);
 
         end;
+        
+
         
         if playerExplode then begin
             scroll:=false;
