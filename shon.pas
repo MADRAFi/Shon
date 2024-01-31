@@ -46,6 +46,7 @@ var
 
 {$r resources.rc}               // including resource files with all assets
 {$i sprites/player.inc}
+{$i sprites/player_explosion.inc}
 
 
 
@@ -61,6 +62,7 @@ var
     i: Byte;
     key: Byte;
     tmp: TString;
+    t: byte;
     addressTop: Word;
     addressBottom: Word;
     
@@ -72,7 +74,9 @@ var
     newlms: Word;
     lms: Word;
     vi: Byte; // iteration in vbl interrupt
-    // values are based on MAXWIDTH const
+
+
+    // values are based on MAXWIDTH const to replace multiply in row calculation y * MAXWIDTH
     row_max: array [0..MAXHEIGHT-1] of Word = (
         0, 96, 192, 288, 384, 480, 576, 672, 768, 864, 960, 1056, 1152, 1248, 1344, 1440, 1536, 1632, 1728, 1824, 1920
     );
@@ -83,6 +87,7 @@ var
     posX: Byte;
     posY_top: Byte;
     posY_bottom: Byte;
+
 
     // player position
     playerX: Byte;
@@ -113,6 +118,7 @@ var
 
     rocket_head: array [0..TILEROCKETMAX-1] of Byte = (SHEAD1, SHEAD2, SHEAD3, SHEAD4);
     rocket_engine: array [0..TILEROCKETMAX-1] of Byte = (SENGINE1, SENGINE2, SENGINE3, SENGINE4);
+    rocket_loc: array[0..MAXWIDTH-1] of Word;
 
     tower_head_top: array [0..TILETOWERMAX-1] of Byte = (STOPT1, STOPT2, STOPT3, STOPT4);
     tower_base_top: array [0..TILETOWERMAX-1] of Byte = (SBASET1, SBASET2, SBASET3, SBASET4);
@@ -322,6 +328,7 @@ begin
                 if playerY>162 then playerY:=162;
             end;
             
+            if joy = 1 then playerExplode:=true;
         // end;
 
 end;
@@ -337,8 +344,8 @@ procedure initLevel;
 begin
     stage1.name:= 'Stage 1';
     stage1.numeric:= 1;
-    stage1.minTop:= 2;
-    stage1.maxTop:= 5;
+    stage1.minTop:= 0;
+    stage1.maxTop:= 0;
     stage1.minBottom:= 2;
     stage1.maxBottom:= 5;
     stage1.len:= 2000;
@@ -664,12 +671,48 @@ procedure rockets;
 *)
 
 begin
-        if (stage.maxBottom > 0) and (stage.maxTop = 0) then begin
+        // if (stage.maxBottom > 0) and (stage.maxTop = 0) then begin
             if tileB = PAD then begin
                 rndNumber1:=rnd and (TILEROCKETMAX - 1);
                 rndNumber2:=rnd and (TILEROCKETMAX - 1);
                 print_game(posX, posY_Bottom - 1, rocket_engine[rndNumber2]);
                 print_game(posX, posY_Bottom - 2, rocket_head[rndNumber1]);
+
+                rocket_loc[posX]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX;
+                rocket_loc[posX+VIEWWIDTH]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX + VIEWWIDTH;
+            end;
+        
+
+        // end;
+end;
+
+
+procedure rocketsMove;
+(*
+   move rockets
+*)
+
+begin
+        for i:=0 to MAXWIDTH -1 do begin
+            if rocket_loc[i] <> 0 then begin
+                addressTop:=rocket_loc[i];
+                if addressTop - MAXWIDTH > SCREEN_GAME then begin
+                    t:=Peek(addressTop);
+                    Poke(addressTop - MAXWIDTH, t);
+
+                    addressBottom:=rocket_loc[i] + MAXWIDTH;
+                    t:=Peek(addressBottom);
+                    Poke(addressTop, t);
+                    Poke(addressBottom, 0);
+                    rocket_loc[i]:=addressTop - MAXWIDTH;
+                end else
+                begin
+                    // addressBottom:=rocket_loc[i] + MAXWIDTH;
+                    // t:=Peek(addressBottom);
+                    // Poke(addressTop, t);
+                    // Poke(addressBottom, 0);
+                    // rocket_loc[i]:=addressTop
+                end;
             end;
         end;
 end;
@@ -722,7 +765,7 @@ begin
                 dpoke(lms + 2, newlms);
                 Inc(newlms,MAXWIDTH);
                 Inc(lms,3);
-            end;	
+            end;
         end;
 
         // coarse scroll
@@ -751,15 +794,11 @@ end;
 procedure collisionDetection;
 
 begin
-    // if colorCollision and ((PMG_hposm1 or PMG_hposm0) and 2 <> 0) then Explode
-
     // player collision
-    // if stage.color and ((p_colors0[1] and hposp0) or (p_colors1[1] and hposp1)) and  <> 0 then playerExplode:=true;
-    // if ((hposm0 and %0001 <> 0) or (hposm0 and %0010) <> 0) then playerExplode:=true;
+    // if (hposm1 or hposm0) and 2 <> 0 then playerExplode:=true;
+    if ((hposm1 or hposm0)) <> 0 then playerExplode:=true;
 
-    if ((hposm1 or hposm0) and %0001 <> 0) then playerExplode:=true;
-
-    
+    waitframe;
     // reset collision detection
     hitclr:=$ff;
 end;
@@ -853,39 +892,57 @@ begin
                 end;
 
                 terrainClean;
-                // terrainTop;
+                terrainTop;
                 terrainBottom;
-                // rockets;
+                rockets;
+                rocketsMove;
                 // towers;
                 collisionDetection;
 
             end;
             MoveRight;
+            // rocketsMove;
         end;
 
         if (gameTime mod 20) = 0 then
         begin
 
             print_bottom(5, 0, gameTime);
-            // print_bottom(15, 0, );
+            print_bottom(15, 0, hposm1);
             print_bottom(20, 0, stage.numeric);
 
             // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
             // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, hposm0);
-            print_bottom(38,0, '  ');print_bottom(38, 0, hposm1);
+            print_bottom(35, 0, '  ');print_bottom(35, 0, hposm1 and 1);
+            print_bottom(38,0, '  ');print_bottom(38, 0, hposm1 and 2);
 
         end;
-
-        if not playerExplode then begin
-            ReadInput;
-            player(playerX, playerY);
+        
+        if playerExplode then begin
+            scroll:=false;
+            for i:=0 to p_explode_spriteFrames - 1 do
+            begin
+                fillbyte(pointer(PMG_BASE + $400 + playerY), p_spriteHeight, 0);
+                fillbyte(pointer(PMG_BASE + $500 + playerY), p_spriteHeight, 0);
+                pcolr0 := p_explode_colors0[i];
+                pcolr1 := p_explode_colors1[i];
+                Move(pointer(p_explode_0[i]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
+                Move(pointer(p_explode_1[i]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
+                // Move(pointer(p_explode_0[0]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
+                // Move(pointer(p_explode_1[0]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
+                
+                WaitFrame;
+                WaitFrame;
+                WaitFrame;
+                WaitFrame;
+                WaitFrame;
+                WaitFrame;
+            end;
         end else
         begin
-            scroll:=false;
-            pcolr0 := p_colors0[0];
-            pcolr1 := p_colors1[0];
+            ReadInput;
+            player(playerX, playerY);
         end;
         
         // if keypressed then scroll:= not scroll;
@@ -895,6 +952,7 @@ begin
     //temporarly to test loop
     gamestate:= GAMEOVER
 end;
+
 
 
 
