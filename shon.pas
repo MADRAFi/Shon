@@ -693,28 +693,64 @@ procedure rocketsMove;
 *)
 
 begin
-        for i:=0 to MAXWIDTH -1 do begin
-            if rocket_loc[i] <> 0 then begin
-                addressTop:=rocket_loc[i];
-                if addressTop - MAXWIDTH > SCREEN_GAME then begin
-                    t:=Peek(addressTop);
-                    Poke(addressTop - MAXWIDTH, t);
+    // for i:=0 to MAXWIDTH -1 do begin
+    //     if rocket_loc[i] <> 0 then begin
+    //         addressTop:=rocket_loc[i];
+    //         if addressTop - MAXWIDTH > SCREEN_GAME then begin
+    //             t:=Peek(addressTop);
+    //             Poke(addressTop - MAXWIDTH, t);
 
-                    addressBottom:=rocket_loc[i] + MAXWIDTH;
-                    t:=Peek(addressBottom);
-                    Poke(addressTop, t);
-                    Poke(addressBottom, 0);
-                    rocket_loc[i]:=addressTop - MAXWIDTH;
+    //             addressBottom:=rocket_loc[i] + MAXWIDTH;
+    //             t:=Peek(addressBottom);
+    //             Poke(addressTop, t);
+    //             Poke(addressBottom, 0);
+    //             rocket_loc[i]:=addressTop - MAXWIDTH;
+    //         end else
+    //         begin
+    //             // addressBottom:=rocket_loc[i] + MAXWIDTH;
+    //             // t:=Peek(addressBottom);
+    //             // Poke(addressTop, t);
+    //             // Poke(addressBottom, 0);
+    //             // rocket_loc[i]:=addressTop
+    //         end;
+    //     end;
+    // end;
+
+        for i:=0 to VIEWWIDTH-1 do begin
+            if (rocket_loc[i] <> 0) and (rocket_loc[i+VIEWWIDTH] <> 0) then begin
+
+                if (rocket_loc[i] - MAXWIDTH > SCREEN_GAME) and (rocket_loc[i+VIEWWIDTH] - MAXWIDTH > SCREEN_GAME) then begin
+                    Poke(rocket_loc[i] - MAXWIDTH, Peek(rocket_loc[i]));
+                    Poke(rocket_loc[i+VIEWWIDTH] - MAXWIDTH, Peek(rocket_loc[i+VIEWWIDTH]));
+
+                    Poke(rocket_loc[i], Peek(rocket_loc[i] + MAXWIDTH));
+                    Poke(rocket_loc[i+VIEWWIDTH], Peek(rocket_loc[i+VIEWWIDTH] + MAXWIDTH));
+
+                    Poke(rocket_loc[i] + MAXWIDTH, 0);
+                    Poke(rocket_loc[i+VIEWWIDTH] + MAXWIDTH, 0);
+
+                    Dec(rocket_loc[i], MAXWIDTH);
+                    Dec(rocket_loc[i+VIEWWIDTH], MAXWIDTH);
                 end else
                 begin
-                    // addressBottom:=rocket_loc[i] + MAXWIDTH;
-                    // t:=Peek(addressBottom);
-                    // Poke(addressTop, t);
-                    // Poke(addressBottom, 0);
-                    // rocket_loc[i]:=addressTop
+                    t:= Peek(rocket_loc[i] + MAXWIDTH);
+                    if (t <> 0) then begin 
+                        Poke(rocket_loc[i], t);
+                        Poke(rocket_loc[i+VIEWWIDTH], Peek(rocket_loc[i+VIEWWIDTH] + MAXWIDTH));
+                    
+                        Poke(rocket_loc[i] + MAXWIDTH, 0);
+                        Poke(rocket_loc[i+VIEWWIDTH] + MAXWIDTH, 0);
+                    end else
+                    begin
+                        Poke(rocket_loc[i], 0);
+                        Poke(rocket_loc[i+VIEWWIDTH], 0);
+                        rocket_loc[i]:=0;
+                        rocket_loc[i+VIEWWIDTH]:=0;
+                    end;
                 end;
             end;
         end;
+    // end;
 end;
 
 
@@ -901,14 +937,13 @@ begin
 
             end;
             MoveRight;
-            // rocketsMove;
         end;
 
         if (gameTime mod 20) = 0 then
         begin
 
-            print_bottom(5, 0, gameTime);
-            print_bottom(15, 0, hposm1);
+            print_bottom(2, 0, gameTime);
+            print_bottom(10, 0, posX);
             print_bottom(20, 0, stage.numeric);
 
             // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
