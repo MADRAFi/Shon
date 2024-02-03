@@ -47,6 +47,7 @@ var
 {$r resources.rc}               // including resource files with all assets
 {$i sprites/player.inc}
 {$i sprites/player_explosion.inc}
+{$i sprites/player_missle.inc}
 
 
 
@@ -93,6 +94,11 @@ var
     // player position
     playerX: Byte;
     playerY: Byte;
+    Missle1X: Byte;
+    Missle1Y: Byte;
+    Missle1X_prev: Byte;
+    Missle1Y_prev: Byte;
+
     playerExplode: Boolean;
     joy: Byte;
 
@@ -329,7 +335,18 @@ begin
                 if playerY>162 then playerY:=162;
             end;
             
-            if joy = 1 then playerExplode:=true;
+            if strig0 = 0 then begin
+                if Missle1X = 0 then begin
+                    Missle1X:=playerX + 4;
+                    Missle1Y:=playerY + 4;
+                end;
+                Inc(Missle1X, 6);
+                if Missle1X > 200 then Missle1X:=0;
+            end else
+            begin
+                Missle1X:=0;
+                Missle1Y:=0;
+            end;
         // end;
 
 end;
@@ -419,20 +436,25 @@ begin
     Move(@p_frames1_0, pointer(PMG_BASE + $500 + y), p_spriteHeight);
 end;
 
-procedure playerMissles(x, y: byte);
+procedure playerMissle1(x, y: byte);
 (*
    draws missles
 *)
 
 begin
-    // pcolr0 := p_colors0[1];
-    // pcolr1 := p_colors1[1];
-
-    // hposm0 := 0;
-    // hposm1 := 0;
+    // pcolr0 := p_fire_colors0[1];
+    // pcolr1 := p_fire_colors1[1];
     // hposp2 := 0;
     // hposp3 := 0;
+    
+    fillbyte(pointer(PMG_BASE + $300 + Missle1Y_prev), p_fire_spriteHeight, 0);
 
+    hposm0 := x;
+    hposm1 := x + p_fire_spriteGap;
+    Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + y), p_fire_spriteHeight);
+    
+    Missle1X_prev:=x;
+    Missle1Y_prev:=y;
 end;
 
 procedure enemies;
@@ -681,10 +703,10 @@ begin
                 print_game(posX, posY_Bottom - 2, rocket_head[rndNumber1]);
 
                 // do not rememeber all rocket locations for animation, they will remain stationary
-                if (rndNumber1 > 1) and (rndNumber2 > 1) then begin
+                // if (rndNumber1 > 1) or (rndNumber2 > 1) then begin
                     rocket_loc[posX]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX;
                     rocket_loc[posX+VIEWWIDTH]:=SCREEN_GAME + row_max[posY_Bottom-2] + posX + VIEWWIDTH;
-                end;
+                // end;
             end;
         
 
@@ -721,9 +743,11 @@ begin
     //     end;
     // end;
     // if animrockets then begin
-        // t:=0;
-        // while t < MAXROCKETSLAUNCH-1 do begin
-        for i:=0 to MAXWIDTH - 1 do begin
+        t:=0;
+        while t < MAXROCKETSLAUNCH-1 do begin
+        i:= rnd and 48;
+        // for i:=0 to MAXWIDTH - 1 do begin
+        // for i:=48 to 96 do begin
             if (rocket_loc[i] <> 0) and (rocket_loc[i+VIEWWIDTH] <> 0) then begin
 
                 if (rocket_loc[i] - MAXWIDTH > SCREEN_GAME) and (rocket_loc[i+VIEWWIDTH] - MAXWIDTH > SCREEN_GAME) then begin
@@ -756,7 +780,7 @@ begin
                     end;
                 end;
             end;
-            // inc(t);
+            inc(t);
         end;
     // end;
 end;
@@ -946,7 +970,7 @@ begin
                 rockets;
                 rocketsMove;
                 // towers;
-                collisionDetection;
+                // collisionDetection;
 
             end;
             MoveRight;
@@ -993,6 +1017,7 @@ begin
         begin
             ReadInput;
             player(playerX, playerY);
+            playerMissle1(Missle1X, Missle1Y)
         end;
         
         // if keypressed then scroll:= not scroll;
