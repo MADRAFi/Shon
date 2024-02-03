@@ -94,10 +94,18 @@ var
     // player position
     playerX: Byte;
     playerY: Byte;
-    Missle1X: Byte;
-    Missle1Y: Byte;
-    Missle1X_prev: Byte;
-    Missle1Y_prev: Byte;
+
+    missle1Fired:Boolean;
+    missle1X: Byte;
+    missle1Y: Byte;
+    missle1X_prev: Byte;
+    missle1Y_prev: Byte;
+
+    missle2Fired:Boolean;
+    missle2X: Byte;
+    missle2Y: Byte;
+    missle2X_prev: Byte;
+    missle2Y_prev: Byte;
 
     playerExplode: Boolean;
     joy: Byte;
@@ -335,18 +343,20 @@ begin
                 if playerY>162 then playerY:=162;
             end;
             
-            if strig0 = 0 then begin
-                if Missle1X = 0 then begin
-                    Missle1X:=playerX + 4;
-                    Missle1Y:=playerY + 4;
-                end;
-                Inc(Missle1X, 6);
-                if Missle1X > 200 then Missle1X:=0;
+            if (strig0 = 0) and (not missle1Fired) then begin
+                missle1Fired:=true;
+                missle2Fired:=true;
             end else
             begin
-                Missle1X:=0;
-                Missle1Y:=0;
+
             end;
+            if (ptrig0 = 0) and (not missle1Fired) then begin
+                missle2Fired:=true;
+            end else
+            begin
+
+            end;
+            
         // end;
 
 end;
@@ -410,6 +420,7 @@ begin
     posY_bottom:= MAXHEIGHT - 1;
 
     playerExplode:=false;
+    missle1Fired:=false;
     playerX:= 100;
     playerY:= 100;
 
@@ -424,38 +435,98 @@ begin
     pcolr0 := p_colors0[1];
     pcolr1 := p_colors1[1];
     hposp0 := x;
-    hposp1 := x + p_spriteGap;
+    hposp1 := hposp0 + p_spriteGap;
     // hposm0 := 0;
     // hposm1 := 0;
     // hposp2 := 0;
     // hposp3 := 0;
 
-    fillbyte(pointer(PMG_BASE + $500 + y - 2), 1, 0);
-    fillbyte(pointer(PMG_BASE + $500 + y + p_spriteHeight+1), 1, 0);
-    Move(@p_frames0_0, pointer(PMG_BASE + $400 + y), p_spriteHeight);
-    Move(@p_frames1_0, pointer(PMG_BASE + $500 + y), p_spriteHeight);
+     //  -6 correction for 1/2 size of p_spriteHeight
+    fillbyte(pointer(PMG_BASE + $500 + y - 6 - 2), 1, 0);
+    fillbyte(pointer(PMG_BASE + $500 + y - 6 + p_spriteHeight+1), 1, 0);
+    Move(@p_frames0_0, pointer(PMG_BASE + $400 + y - 6), p_spriteHeight);
+    Move(@p_frames1_0, pointer(PMG_BASE + $500 + y - 6), p_spriteHeight);
 end;
 
-procedure playerMissle1(x, y: byte);
+// procedure playerMissle1(x, y: byte);
+procedure playerMissle1;
 (*
-   draws missles
+   draws missle 1 toward enemy
 *)
 
 begin
+
+    if missle1X = 0 then begin
+        missle1X:=playerX + 8; // draw in front
+        missle1Y:=playerY;
+    end;
+    Inc(missle1X, 6);
+
+    if missle1X > 230 then begin
+        missle1X:=0;
+        missle1Fired:=false;
+    end;
+
+
+
     // pcolr0 := p_fire_colors0[1];
     // pcolr1 := p_fire_colors1[1];
     // hposp2 := 0;
     // hposp3 := 0;
     
-    fillbyte(pointer(PMG_BASE + $300 + Missle1Y_prev), p_fire_spriteHeight, 0);
+    fillbyte(pointer(PMG_BASE + $300 + missle1Y_prev), p_fire_spriteHeight, 0);
 
-    hposm0 := x;
-    hposm1 := x + p_fire_spriteGap;
-    Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + y), p_fire_spriteHeight);
+    // hposm0 := x;
+    hposm0 := missle1X;
+    hposm1 := hposm0 + p_fire_spriteGap;
+    // Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + y), p_fire_spriteHeight);
+    Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + missle1Y), p_fire_spriteHeight);
     
-    Missle1X_prev:=x;
-    Missle1Y_prev:=y;
+    // missle1X_prev:=x;
+    // missle1Y_prev:=y;
+    missle1X_prev:=missle1X;
+    missle1Y_prev:=missle1Y;
 end;
+
+
+procedure playerMissle2;
+(*
+   draws missle 2 down
+*)
+
+begin
+
+    // if missle2Y = 0 then begin
+    //     missle2X:=playerX + 8; // draw in front
+    //     missle2Y:=playerY + 8;
+    // end;
+    // Inc(missle2X, 1);
+    Inc(missle2Y, 1);
+
+    if missle2Y > 160 then begin
+        missle2Y:=0;
+        missle2Fired:=false;
+    end;
+
+
+
+    // pcolr2 := p_fire_colors0[1];
+    // pcolr3 := p_fire_colors1[1];
+    // hposp2 := 0;
+    // hposp3 := 0;
+    
+    fillbyte(pointer(PMG_BASE + $300 + missle2Y_prev), p_fire_spriteHeight, 0);
+
+    // hposm2 := missle2X;
+    hposm2:= playerX;
+    hposm3:= hposm2 + p_fire_spriteGap;
+    Move(@p_fire_framesMIS_1, pointer(PMG_BASE + $300 + missle2Y), p_fire_spriteHeight);
+    
+
+    missle2X_prev:=missle2X;
+    missle2Y_prev:=missle2Y;
+end;
+
 
 procedure enemies;
 (*
@@ -1017,7 +1088,12 @@ begin
         begin
             ReadInput;
             player(playerX, playerY);
-            playerMissle1(Missle1X, Missle1Y)
+            if missle1Fired then begin
+                playerMissle1;
+            end;
+            if missle2Fired then begin
+                playerMissle2;
+            end;
         end;
         
         // if keypressed then scroll:= not scroll;
