@@ -311,8 +311,8 @@ begin
     pcolr3 := 0;
     sizep0 := 2;
     sizep1 := 2;
-    sizep2 := 1;
-    sizep3 := 1;
+    sizep2 := 2;
+    sizep3 := 2;
     sizem := %00000101;
 end;
 
