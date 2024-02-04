@@ -10,7 +10,8 @@ SCREEN_GAME = FREE_BOTTOM;                         // Screen memory address of g
 SCREEN_BOTTOM = SCREEN_GAME + $900;                // Screen memory address of game's bottom row area
 DISPLAY_LIST_GAME = SCREEN_BOTTOM + $100;
 DISPLAY_LIST_TITLE = DISPLAY_LIST_GAME + $100;
-PMG_BASE = DISPLAY_LIST_TITLE + $100;               // Player Missle Graphics
+
+PMG_BASE = $5000;               // Player Missle Graphics
 SCREEN_TITLE = PMG_BASE + $800;                     // Screen memory address of Title Screen 
 
 RMT_PLAYER_ADDRESS = $6000;                         // RMT Player address NOTE: It concumes some memory before that address so we have to make sure it stays free
@@ -33,9 +34,18 @@ MAXHEIGHT = 21;
 // ROWLIMIT = 8;
 HPOSMIN = 0;
 HPOSMAX = 3;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+UP = 0;
+PLAIN = 1;
+DOWN = 2;
+PAD = 3;
+WARN = 4;
+
+
 TILEMAX = 5;
+STAGEMAX = 4;
 
 SUPT = 102;
 SDOWNT = 103;
@@ -66,5 +76,46 @@ SFRAME = 10;
 SFRAMEINV = 138;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+TILEROCKETMAX = 4;
+MAXROCKETSLAUNCH = 3;
 
-STAGEMAX = 4;
+SENGINE1 = 66;
+SENGINE2 = 67;
+SENGINE3 = 72;
+SENGINE4 = 69;
+
+SHEAD1 = 11;
+SHEAD2 = 12;
+SHEAD3 = 13;
+SHEAD4 = 14;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TILETOWERMAX = 4;
+
+SBASET1 = 112;
+SBASET2 = 113;
+SBASET3 = 114;
+SBASET4 = 112;
+
+STOPT1 = 116;
+STOPT2 = 117;
+STOPT3 = 118;
+STOPT4 = 119;
+
+SBASEB1 = 97;
+SBASEB2 = 98;
+SBASEB3 = 99;
+SBASEB4 = 82;
+
+STOPB1 = 84;
+STOPB2 = 85;
+STOPB3 = 86;
+STOPB4 = 87;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+KEY_LEFT_CODE = 6;
+KEY_RIGHT_CODE = 7;
+KEY_UP_CODE = 14;
+KEY_DOWN_CODE = 15;
