@@ -34,6 +34,7 @@ MAXHEIGHT = 21;
 // ROWLIMIT = 8;
 HPOSMIN = 0;
 HPOSMAX = 3;
+POFFSET = 6; //  player position -6 correction for 1/2 size of p_spriteHeight
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -110,6 +110,11 @@ var
     missles_tmp: Word;
 
 
+    p0pf: byte absolute $D004;  // player 0 to playfield collision
+    p1pf: byte absolute $D005;  // player 1 to playfield collision
+    m0pf: byte absolute $D000;  // missle 0 to playfield collision
+    m1pf: byte absolute $D001;  // missle 1 to playfield collision
+
     playerExplode: Boolean;
     joy: Byte;
 
@@ -343,7 +348,7 @@ begin
             end;
             if ((joy and %0010) = 0) or (key = KEY_DOWN_CODE) then begin
                 Inc(playerY,2);
-                if playerY>162 then playerY:=162;
+                if playerY>172 then playerY:=172;
             end;
             
             if (strig0 = 0) and (not missle1Fired) then begin
@@ -433,8 +438,6 @@ procedure player(x, y: byte);
 (*
    draws player
 *)
-const
-    POFFSET = 6; //  -6 correction for 1/2 size of p_spriteHeight
 begin
     pcolr0 := p_colors0[1];
     pcolr1 := p_colors1[1];
@@ -446,7 +449,9 @@ begin
     // hposp3 := 0;
 
     
+    fillbyte(pointer(PMG_BASE + $400 + y - POFFSET - 2), 1, 0);
     fillbyte(pointer(PMG_BASE + $500 + y - POFFSET - 2), 1, 0);
+    fillbyte(pointer(PMG_BASE + $400 + y - POFFSET + p_spriteHeight+1), 1, 0);
     fillbyte(pointer(PMG_BASE + $500 + y - POFFSET + p_spriteHeight+1), 1, 0);
     Move(@p_frames0_0, pointer(PMG_BASE + $400 + y - POFFSET), p_spriteHeight);
     Move(@p_frames1_0, pointer(PMG_BASE + $500 + y - POFFSET), p_spriteHeight);
@@ -944,7 +949,8 @@ procedure collisionDetection;
 begin
     // player collision
     // if (hposm1 or hposm0) and 2 <> 0 then playerExplode:=true;
-    if ((hposm1 or hposm0)) <> 0 then playerExplode:=true;
+    // if ((hposm1 or hposm0)) <> 0 then playerExplode:=true;
+    if ((p0pf or p1pf)) <> 0 then playerExplode:=true;
 
     waitframe;
     // reset collision detection
@@ -1051,7 +1057,7 @@ begin
                 rockets;
                 // rocketsMove;
                 // towers;
-                // collisionDetection;
+                collisionDetection;
 
             end;
             MoveRight;
@@ -1060,15 +1066,15 @@ begin
         if (gameTime mod 20) = 0 then
         begin
 
-            print_bottom(2, 0, gameTime);
-            print_bottom(10, 0, posX);
-            print_bottom(20, 0, stage.numeric);
+            print_bottom(1, 0, gameTime);
+            print_bottom(6, 0, posX);
+            // print_bottom(20, 0, stage.numeric);
 
-            // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
-            // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
+            print_bottom(25, 0, '  ');print_bottom(25, 0, p0pf);
+            print_bottom(29, 0, '  ');print_bottom(29, 0, p1pf);
 
-            // print_bottom(35, 0, '  ');print_bottom(35, 0, );
-            // print_bottom(38,0, '  ');print_bottom(38, 0, );
+            print_bottom(35, 0, '  ');print_bottom(35, 0, m0pf);
+            print_bottom(38, 0, '  ');print_bottom(38, 0, m1pf);
 
         end;
         
@@ -1078,12 +1084,12 @@ begin
             scroll:=false;
             for i:=0 to p_explode_spriteFrames - 1 do
             begin
-                fillbyte(pointer(PMG_BASE + $400 + playerY), p_spriteHeight, 0);
-                fillbyte(pointer(PMG_BASE + $500 + playerY), p_spriteHeight, 0);
+                fillbyte(pointer(PMG_BASE + $400 + playerY - POFFSET), p_spriteHeight, 0);
+                fillbyte(pointer(PMG_BASE + $500 + playerY - POFFSET), p_spriteHeight, 0);
                 pcolr0 := p_explode_colors0[i];
                 pcolr1 := p_explode_colors1[i];
-                Move(pointer(p_explode_0[i]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
-                Move(pointer(p_explode_1[i]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
+                Move(pointer(p_explode_0[i]), pointer(PMG_BASE + $400 + playerY - POFFSET), p_spriteHeight);
+                Move(pointer(p_explode_1[i]), pointer(PMG_BASE + $500 + playerY - POFFSET), p_spriteHeight);
                 // Move(pointer(p_explode_0[0]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
                 // Move(pointer(p_explode_1[0]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
                 
