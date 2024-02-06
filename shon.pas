@@ -48,8 +48,13 @@ var
 {$i sprites/player.inc}
 {$i sprites/player_explosion.inc}
 {$i sprites/player_missle.inc}
+{$i sprites/missle_explosion.inc}
 
 
+    p0pf: byte absolute $D004;  // player 0 to playfield collision
+    p1pf: byte absolute $D005;  // player 1 to playfield collision
+    m0pf: byte absolute $D000;  // missle 0 to playfield collision
+    m1pf: byte absolute $D001;  // missle 1 to playfield collision
 
     gamestate: TGameState;
     music: Boolean;
@@ -95,13 +100,18 @@ var
     playerX: Byte;
     playerY: Byte;
 
-    missle1Fired:Boolean;
+    playerExplode: Boolean;
+
+    // missles position
+    missle1Fired: Boolean;
+    missle1Explode: Boolean;
     missle1X: Byte;
     missle1Y: Byte;
     missle1X_prev: Byte;
     missle1Y_prev: Byte;
 
-    missle2Fired:Boolean;
+    missle2Fired: Boolean;
+    missle2Explode: Boolean;
     missle2X: Byte;
     missle2Y: Byte;
     missle2X_prev: Byte;
@@ -109,13 +119,6 @@ var
     missle2X_limit: Byte;
     missles_tmp: Word;
 
-
-    p0pf: byte absolute $D004;  // player 0 to playfield collision
-    p1pf: byte absolute $D005;  // player 1 to playfield collision
-    m0pf: byte absolute $D000;  // missle 0 to playfield collision
-    m1pf: byte absolute $D001;  // missle 1 to playfield collision
-
-    playerExplode: Boolean;
     joy: Byte;
 
     tileT: byte = NONE;
@@ -506,12 +509,12 @@ procedure playerMissle2;
 *)
 
 begin
-
     if missle2Y = 0 then begin
         missle2X:=playerX + 4; // draw in front
         missle2Y:=playerY + 4;
         missle2X_limit:=playerX + 8;
     end;
+
     if missle2X < missle2X_limit then Inc(missle2X, 1);
     Inc(missle2Y, 2);
 
@@ -948,9 +951,13 @@ procedure collisionDetection;
 
 begin
     // player collision
-    // if (hposm1 or hposm0) and 2 <> 0 then playerExplode:=true;
-    // if ((hposm1 or hposm0)) <> 0 then playerExplode:=true;
     if ((p0pf or p1pf)) <> 0 then playerExplode:=true;
+    
+    // missle1 collision
+    if m0pf <> 0 then missle1Explode:=true;
+    
+    // missle2 collision
+    if m1pf <> 0 then missle2Explode:=true;
 
     waitframe;
     // reset collision detection
@@ -1068,7 +1075,7 @@ begin
 
             print_bottom(1, 0, gameTime);
             print_bottom(6, 0, posX);
-            // print_bottom(20, 0, stage.numeric);
+            print_bottom(20, 0, byte(missle2Explode));
 
             print_bottom(25, 0, '  ');print_bottom(25, 0, p0pf);
             print_bottom(29, 0, '  ');print_bottom(29, 0, p1pf);
@@ -1078,7 +1085,31 @@ begin
 
         end;
         
+        if missle2Explode then begin
+            // clear missle2
+            addressTop:=PMG_BASE + $300 + missle2Y_prev;
+            missles_tmp:=Peek(addressTop);
+            for i:=0 to p_fire_spriteHeight - 1 do begin
+                Poke(addressTop + i, missles_tmp OR 0);
+            end;
 
+            // for i:=0 to m_explode_spriteFrames - 1 do
+            // begin
+            //     pcolr0 := m_explode_colors0[i];
+            //     pcolr1 := m_explode_colors1[i];
+                // Move(pointer(m_explode_0[i]), pointer(PMG_BASE + $400 + missle2Y), m_explode_spriteHeight);
+                // Move(pointer(m_explode_1[i]), pointer(PMG_BASE + $500 + missle2Y), m_explode_spriteHeight);
+                
+            //     WaitFrame;
+            //     WaitFrame;
+            //     WaitFrame;
+            //     WaitFrame;
+            //     WaitFrame;
+            // end;
+            missle2X:=0;
+            missle2Y:=0;
+            missle2Explode:=false;
+        end;
         
         if playerExplode then begin
             scroll:=false;
@@ -1090,8 +1121,6 @@ begin
                 pcolr1 := p_explode_colors1[i];
                 Move(pointer(p_explode_0[i]), pointer(PMG_BASE + $400 + playerY - POFFSET), p_spriteHeight);
                 Move(pointer(p_explode_1[i]), pointer(PMG_BASE + $500 + playerY - POFFSET), p_spriteHeight);
-                // Move(pointer(p_explode_0[0]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
-                // Move(pointer(p_explode_1[0]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
                 
                 WaitFrame;
                 WaitFrame;
@@ -1107,7 +1136,7 @@ begin
             if missle1Fired then begin
                 playerMissle1;
             end;
-            if missle2Fired then begin
+            if missle2Fired and not missle2Explode then begin
                 playerMissle2;
             end;
         end;
