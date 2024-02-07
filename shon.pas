@@ -48,8 +48,13 @@ var
 {$i sprites/player.inc}
 {$i sprites/player_explosion.inc}
 {$i sprites/player_missle.inc}
+{$i sprites/missle_explosion.inc}
 
 
+    p0pf: byte absolute $D004;  // player 0 to playfield collision
+    p1pf: byte absolute $D005;  // player 1 to playfield collision
+    m0pf: byte absolute $D000;  // missle 0 to playfield collision
+    m1pf: byte absolute $D001;  // missle 1 to playfield collision
 
     gamestate: TGameState;
     music: Boolean;
@@ -71,12 +76,9 @@ var
     // variables used for scroll
     hposition: Byte;
     scroll: Boolean;
-    animrockets: Boolean;
-
     newlms: Word;
     lms: Word;
     vi: Byte; // iteration in vbl interrupt
-    debval: byte;
 
     // values are based on MAXWIDTH const to replace multiply in row calculation y * MAXWIDTH
     row_max: array [0..MAXHEIGHT-1] of Word = (
@@ -85,6 +87,7 @@ var
     row_view: array [0..2] of Byte = (
         0, 40, 80
     );
+
     // terrain positions
     posX: Byte;
     posY_top: Byte;
@@ -95,19 +98,28 @@ var
     playerX: Byte;
     playerY: Byte;
 
-    missle1Fired:Boolean;
+    playerExplode: Boolean;
+    animrockets: Boolean;
+    current_frame: Byte;
+
+
+    // missles position
+    missle1Fired: Boolean;
+    missle1Explode: Boolean;
     missle1X: Byte;
     missle1Y: Byte;
     missle1X_prev: Byte;
     missle1Y_prev: Byte;
 
-    missle2Fired:Boolean;
+    missle2Fired: Boolean;
+    missle2Explode: Boolean;
     missle2X: Byte;
     missle2Y: Byte;
     missle2X_prev: Byte;
     missle2Y_prev: Byte;
+    missle2X_limit: Byte;
+    missles_tmp: Word;
 
-    playerExplode: Boolean;
     joy: Byte;
 
     tileT: byte = NONE;
@@ -336,26 +348,27 @@ begin
             end;
             if ((joy and %0001) = 0) or (key = KEY_UP_CODE) then begin
                 Dec(playerY,2);
-                if playerY<12 then playerY:=12;
+                if playerY<24 then playerY:=24;
             end;
             if ((joy and %0010) = 0) or (key = KEY_DOWN_CODE) then begin
                 Inc(playerY,2);
-                if playerY>162 then playerY:=162;
+                if playerY>172 then playerY:=172;
             end;
             
-            if (strig0 = 0) and (not missle1Fired) then begin
+            // if (strig0 = 0) and (not missle1Fired) then begin
+            if (strig0 = 0) then begin
                 missle1Fired:=true;
                 missle2Fired:=true;
             end else
             begin
 
             end;
-            if (ptrig0 = 0) and (not missle1Fired) then begin
-                missle2Fired:=true;
-            end else
-            begin
+            // if (ptrig0 = 0) and (not missle1Fired) then begin
+            //     missle2Fired:=true;
+            // end else
+            // begin
 
-            end;
+            // end;
             
         // end;
 
@@ -430,22 +443,18 @@ procedure player(x, y: byte);
 (*
    draws player
 *)
-
 begin
     pcolr0 := p_colors0[1];
     pcolr1 := p_colors1[1];
     hposp0 := x;
     hposp1 := hposp0 + p_spriteGap;
-    // hposm0 := 0;
-    // hposm1 := 0;
-    // hposp2 := 0;
-    // hposp3 := 0;
-
-     //  -6 correction for 1/2 size of p_spriteHeight
-    fillbyte(pointer(PMG_BASE + $500 + y - 6 - 2), 1, 0);
-    fillbyte(pointer(PMG_BASE + $500 + y - 6 + p_spriteHeight+1), 1, 0);
-    Move(@p_frames0_0, pointer(PMG_BASE + $400 + y - 6), p_spriteHeight);
-    Move(@p_frames1_0, pointer(PMG_BASE + $500 + y - 6), p_spriteHeight);
+    
+    fillbyte(pointer(PMG_BASE + $400 + y - POFFSET - 2), 1, 0);
+    fillbyte(pointer(PMG_BASE + $500 + y - POFFSET - 2), 1, 0);
+    fillbyte(pointer(PMG_BASE + $400 + y - POFFSET + p_spriteHeight+1), 1, 0);
+    fillbyte(pointer(PMG_BASE + $500 + y - POFFSET + p_spriteHeight+1), 1, 0);
+    Move(@p_frames0_0, pointer(PMG_BASE + $400 + y - POFFSET), p_spriteHeight);
+    Move(@p_frames1_0, pointer(PMG_BASE + $500 + y - POFFSET), p_spriteHeight);
 end;
 
 // procedure playerMissle1(x, y: byte);
@@ -462,28 +471,30 @@ begin
     end;
     Inc(missle1X, 6);
 
-    if missle1X > 230 then begin
+    if missle1X > 220 then begin
         missle1X:=0;
         missle1Fired:=false;
     end;
 
-
-
-    // pcolr0 := p_fire_colors0[1];
-    // pcolr1 := p_fire_colors1[1];
-    // hposp2 := 0;
-    // hposp3 := 0;
+    pcolr0 := p_fire_colors0[1];
     
-    fillbyte(pointer(PMG_BASE + $300 + missle1Y_prev), p_fire_spriteHeight, 0);
+    // fillbyte(pointer(PMG_BASE + $300 + missle1Y_prev), p_fire_spriteHeight, 0);
+    // Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + missle1Y), p_fire_spriteHeight);
 
-    // hposm0 := x;
+    addressTop:=PMG_BASE + $300 + missle1Y_prev;
+    missles_tmp:=Peek(addressTop);
+    for i:=0 to p_fire_spriteHeight - 1 do begin
+        Poke(addressTop + i, missles_tmp OR 0);
+    end;
+    
+    addressTop:=PMG_BASE + $300 + missle1Y;
+    missles_tmp:=Peek(addressTop);
+    for i:=0 to p_fire_spriteHeight - 1 do begin
+        Poke(addressTop + i, missles_tmp OR p_fire_framesMIS_0[i]);
+    end;
+    
     hposm0 := missle1X;
-    hposm1 := hposm0 + p_fire_spriteGap;
-    // Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + y), p_fire_spriteHeight);
-    Move(@p_fire_framesMIS_0, pointer(PMG_BASE + $300 + missle1Y), p_fire_spriteHeight);
-    
-    // missle1X_prev:=x;
-    // missle1Y_prev:=y;
+
     missle1X_prev:=missle1X;
     missle1Y_prev:=missle1Y;
 end;
@@ -495,33 +506,39 @@ procedure playerMissle2;
 *)
 
 begin
+    if missle2Y = 0 then begin
+        missle2X:=playerX + 4; // draw in front
+        missle2Y:=playerY + 4;
+        missle2X_limit:=playerX + 8;
+    end;
 
-    // if missle2Y = 0 then begin
-    //     missle2X:=playerX + 8; // draw in front
-    //     missle2Y:=playerY + 8;
-    // end;
-    // Inc(missle2X, 1);
-    Inc(missle2Y, 1);
+    if missle2X < missle2X_limit then Inc(missle2X, 1);
+    Inc(missle2Y, 2);
 
     if missle2Y > 160 then begin
         missle2Y:=0;
         missle2Fired:=false;
     end;
 
-
-
-    // pcolr2 := p_fire_colors0[1];
-    // pcolr3 := p_fire_colors1[1];
-    // hposp2 := 0;
-    // hposp3 := 0;
+    pcolr1 := p_fire_colors1[1];
     
-    fillbyte(pointer(PMG_BASE + $300 + missle2Y_prev), p_fire_spriteHeight, 0);
+    // fillbyte(pointer(PMG_BASE + $300 + missle2Y_prev), p_fire_spriteHeight, 0);
+    // Move(@p_fire_framesMIS_1, pointer(PMG_BASE + $300 + missle2Y), p_fire_spriteHeight);
 
-    // hposm2 := missle2X;
-    hposm2:= playerX;
-    hposm3:= hposm2 + p_fire_spriteGap;
-    Move(@p_fire_framesMIS_1, pointer(PMG_BASE + $300 + missle2Y), p_fire_spriteHeight);
+
+    addressTop:=PMG_BASE + $300 + missle2Y_prev;
+    missles_tmp:=Peek(addressTop);
+    for i:=0 to p_fire_spriteHeight - 1 do begin
+        Poke(addressTop + i, missles_tmp OR 0);
+    end;
     
+    addressTop:=PMG_BASE + $300 + missle2Y;
+    missles_tmp:=Peek(addressTop);
+    for i:=0 to p_fire_spriteHeight - 1 do begin
+        Poke(addressTop + i, missles_tmp OR p_fire_framesMIS_1[i]);
+    end;
+
+    hposm1 := missle2X;
 
     missle2X_prev:=missle2X;
     missle2Y_prev:=missle2Y;
@@ -573,8 +590,6 @@ begin
         if stage.maxBottom > 0 then begin
             
             tileB:=rnd and (TILEMAX - 2); // do not use WARN tile
-            // tileB:=rnd and 3; // do not use WARN tile
-
 
             // Max limits check
             If (posY_bottom <= MAXHEIGHT - stage.maxBottom) and (tileB = UP) then
@@ -933,12 +948,25 @@ procedure collisionDetection;
 
 begin
     // player collision
-    // if (hposm1 or hposm0) and 2 <> 0 then playerExplode:=true;
-    if ((hposm1 or hposm0)) <> 0 then playerExplode:=true;
+    if ((p0pf or p1pf)) <> 0 then begin
+        playerExplode:=true;
+        // current_frame:=0;
+    end;
+    // missle1 collision
+    if m0pf <> 0 then begin
+        missle1Explode:=true;
+        // current_frame:=0;
+    end;
+    
+    // missle2 collision
+    if m1pf <> 0 then begin
+        missle2Explode:=true;
+        // current_frame:=0;
+    end;
 
-    waitframe;
+    // waitframe;
     // reset collision detection
-    hitclr:=$ff;
+    // hitclr:=$ff;
 end;
 
 // -----------------------------------------------------------------------------
@@ -1018,7 +1046,7 @@ begin
         // if (gameTime mod 96) = 0 then begin
         //     animrockets:=false;
         // end;
-
+        hitclr:=$ff;
         if scroll then
         begin
 
@@ -1039,7 +1067,7 @@ begin
                 terrainTop;
                 terrainBottom;
                 rockets;
-                rocketsMove;
+                // rocketsMove;
                 // towers;
                 // collisionDetection;
 
@@ -1050,39 +1078,66 @@ begin
         if (gameTime mod 20) = 0 then
         begin
 
-            print_bottom(2, 0, gameTime);
-            print_bottom(10, 0, posX);
-            print_bottom(20, 0, stage.numeric);
+            print_bottom(1, 0, gameTime);
+            print_bottom(6, 0, posX);
+            print_bottom(20, 0, byte(missle2Explode));
 
-            // print_bottom(35, 0, '  ');print_bottom(35, 0, stage.maxTop);
-            // print_bottom(38,0, '  ');print_bottom(38, 0, stage.maxBottom);
+            print_bottom(25, 0, '   ');print_bottom(25, 0, missle2X);
+            print_bottom(29, 0, '   ');print_bottom(29, 0, missle2Y);
 
-            print_bottom(35, 0, '  ');print_bottom(35, 0, t);
-            print_bottom(38,0, '  ');print_bottom(38, 0, debval);
+            print_bottom(35, 0, '   ');print_bottom(35, 0, m0pf);
+            print_bottom(38, 0, '   ');print_bottom(38, 0, m1pf);
 
         end;
         
+        if missle2Explode then begin
+            // clear missle2
+            addressTop:=PMG_BASE + $300 + missle2Y_prev;
+            missles_tmp:=Peek(addressTop);
+            for i:=0 to p_fire_spriteHeight - 1 do begin
+                Poke(addressTop + i, missles_tmp OR 0);
+            end;
+            pcolr2 := m_explode_colors0[current_frame];
+            pcolr3 := m_explode_colors1[current_frame];
+            Move(pointer(m_explode_0[current_frame]), pointer(PMG_BASE + $600 + missle2Y), m_explode_spriteHeight);
+            Move(pointer(m_explode_1[current_frame]), pointer(PMG_BASE + $700 + missle2Y), m_explode_spriteHeight);
+            hposp2 := missle2X;
+            hposp3 := hposp2 + m_explode_spriteGap;
+            
+            // WaitFrame;
+            // WaitFrame;
+            // WaitFrame;
 
+            if current_frame < m_explode_spriteFrames-1 then Inc(current_frame)
+            else begin
+                current_frame:=0;
+                missle2X:=0;
+                missle2Y:=0;
+                hposp2:= 0;
+                hposp3:= 0;
+                missle2Fired:=false;
+                missle2Explode:=false;
+            end;        
+        end;
         
         if playerExplode then begin
             scroll:=false;
-            for i:=0 to p_explode_spriteFrames - 1 do
-            begin
-                fillbyte(pointer(PMG_BASE + $400 + playerY), p_spriteHeight, 0);
-                fillbyte(pointer(PMG_BASE + $500 + playerY), p_spriteHeight, 0);
-                pcolr0 := p_explode_colors0[i];
-                pcolr1 := p_explode_colors1[i];
-                Move(pointer(p_explode_0[i]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
-                Move(pointer(p_explode_1[i]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
-                // Move(pointer(p_explode_0[0]), pointer(PMG_BASE + $400 + playerY), p_spriteHeight);
-                // Move(pointer(p_explode_1[0]), pointer(PMG_BASE + $500 + playerY), p_spriteHeight);
-                
-                WaitFrame;
-                WaitFrame;
-                WaitFrame;
-                WaitFrame;
-                WaitFrame;
-                WaitFrame;
+            fillbyte(pointer(PMG_BASE + $400 + playerY - POFFSET), p_spriteHeight, 0);
+            fillbyte(pointer(PMG_BASE + $500 + playerY - POFFSET), p_spriteHeight, 0);
+            pcolr0 := p_explode_colors0[current_frame];
+            pcolr1 := p_explode_colors1[current_frame];
+            Move(pointer(p_explode_0[current_frame]), pointer(PMG_BASE + $400 + playerY - POFFSET), p_spriteHeight);
+            Move(pointer(p_explode_1[current_frame]), pointer(PMG_BASE + $500 + playerY - POFFSET), p_spriteHeight);
+            
+            WaitFrame;
+            WaitFrame;
+            WaitFrame;
+
+            if current_frame < p_explode_spriteFrames-1 then Inc(current_frame)
+            // temp disabled should restart player
+            else begin
+                current_frame:=0;
+                playerExplode:=false;
             end;
         end else
         begin
@@ -1091,12 +1146,12 @@ begin
             if missle1Fired then begin
                 playerMissle1;
             end;
-            if missle2Fired then begin
+            if missle2Fired and not missle2Explode then begin
                 playerMissle2;
             end;
         end;
         
-        // if keypressed then scroll:= not scroll;
+        collisionDetection;
         WaitFrame;
     until false;
     
