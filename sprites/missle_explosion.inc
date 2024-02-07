@@ -1,7 +1,6 @@
-var
   m_explode_spriteFrames: byte = $05;
   m_explode_spriteHeight: byte = $08;
-  m_spriteGap: byte = $00;
+  m_explode_spriteGap: byte = $00;
 
   m_explode_colors0: array [0..$04] of byte = (
     $0e, $0e, $0e, $0e, $0e
@@ -43,6 +42,7 @@ var
   m_explode_frames1_4: array [0..$07] of byte = (
     $00, $00, $00, $18, $18, $00, $00, $00
   );
+
 
 m_explode_0: array [0..$04] of pointer = (
   @m_explode_frames0_0, @m_explode_frames0_1, @m_explode_frames0_2, @m_explode_frames0_3, @m_explode_frames0_4
