@@ -71,7 +71,7 @@ var
     t: byte;
     addressTop: Word;
     addressBottom: Word;
-    
+    addresscalc: Word;
 
     // variables used for scroll
     hposition: Byte;
@@ -119,6 +119,9 @@ var
     missle2Y_prev: Byte;
     missle2X_limit: Byte;
     missles_tmp: Word;
+
+    cx,cy: byte;
+
 
     joy: Byte;
 
@@ -186,7 +189,7 @@ procedure print_bottom( x, y: Byte; s: String);overload;
 begin
     Str2Antic(s);
 
-    addressBottom:=SCREEN_BOTTOM + ((VIEWWIDTH - 8) * y) + x;
+    addressBottom:=SCREEN_BOTTOM + row_view[y] + x;
     move(s[1], pointer(addressBottom), Length(s));  
 end;
 
@@ -438,6 +441,18 @@ begin
     playerY:= 100;
 
 end;
+
+
+procedure calcpos(missle_x, missle_y : byte);
+
+begin
+    cx:= (missle_x div 8);
+    cy:= (missle_y div 8);
+    addresscalc:=SCREEN_GAME + row_max[cy] + cx;
+    Poke(addresscalc, SWARN);
+    Poke(addresscalc + VIEWWIDTH, SWARN);
+end;
+
 
 procedure player(x, y: byte);
 (*
@@ -1047,9 +1062,10 @@ begin
         //     animrockets:=false;
         // end;
         hitclr:=$ff;
+
+
         if scroll then
         begin
-
             if (hposition = HPOSMAX) then begin
                 if (gameTime > 0) and (gameTime mod stage.len = 0) then begin
                     if currentStage < STAGEMAX then begin
@@ -1069,25 +1085,9 @@ begin
                 rockets;
                 // rocketsMove;
                 // towers;
-                // collisionDetection;
 
             end;
             MoveRight;
-        end;
-
-        if (gameTime mod 20) = 0 then
-        begin
-
-            print_bottom(1, 0, gameTime);
-            print_bottom(6, 0, posX);
-            print_bottom(20, 0, byte(missle2Explode));
-
-            print_bottom(25, 0, '   ');print_bottom(25, 0, missle2X);
-            print_bottom(29, 0, '   ');print_bottom(29, 0, missle2Y);
-
-            print_bottom(35, 0, '   ');print_bottom(35, 0, m0pf);
-            print_bottom(38, 0, '   ');print_bottom(38, 0, m1pf);
-
         end;
         
         if missle2Explode then begin
@@ -1097,6 +1097,10 @@ begin
             for i:=0 to p_fire_spriteHeight - 1 do begin
                 Poke(addressTop + i, missles_tmp OR 0);
             end;
+
+            // scroll:=false;
+            // calcpos(missle2X, missle2Y);
+
             pcolr2 := m_explode_colors0[current_frame];
             pcolr3 := m_explode_colors1[current_frame];
             Move(pointer(m_explode_0[current_frame]), pointer(PMG_BASE + $600 + missle2Y), m_explode_spriteHeight);
@@ -1151,6 +1155,23 @@ begin
             end;
         end;
         
+        if (gameTime mod 20) = 0 then
+        begin
+            // calcpos(playerX, playerY);
+            print_bottom(1, 0, gameTime);
+            // print_bottom(6, 0, );
+            // print_bottom(10, 0, '   ');print_bottom(10, 0, t);
+
+            print_bottom(25, 0, '   ');print_bottom(25, 0, missle2X);
+            print_bottom(29, 0, '   ');print_bottom(29, 0, missle2Y);
+
+            // print_bottom(35, 0, '   ');print_bottom(35, 0, m0pf);
+            // print_bottom(38, 0, '   ');print_bottom(38, 0, m1pf);
+            print_bottom(33, 0, '   ');print_bottom(33, 0, cx);
+            print_bottom(37, 0, '   ');print_bottom(37, 0, cy);
+
+        end;
+
         collisionDetection;
         WaitFrame;
     until false;
