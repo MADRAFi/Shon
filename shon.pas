@@ -343,7 +343,7 @@ begin
         // if (joy <> 15) or (key <> NONE) then begin
             if ((joy and %0100) = 0) or (key = KEY_LEFT_CODE) then begin  
                 dec(playerX);
-                if playerX<48 then playerX:=48;
+                if playerX<46 then playerX:=46;
             end;
             if ((joy and %1000) = 0) or (key = KEY_RIGHT_CODE) then begin
                 Inc(playerX);
@@ -351,7 +351,7 @@ begin
             end;
             if ((joy and %0001) = 0) or (key = KEY_UP_CODE) then begin
                 Dec(playerY,2);
-                if playerY<24 then playerY:=24;
+                if playerY<23 then playerY:=23;
             end;
             if ((joy and %0010) = 0) or (key = KEY_DOWN_CODE) then begin
                 Inc(playerY,2);
@@ -446,8 +446,8 @@ end;
 procedure calcpos(missle_x, missle_y : byte);
 
 begin
-    cx:= (missle_x div 8);
-    cy:= (missle_y div 8);
+    cx:= ((missle_x - 48) div 4);
+    cy:= ((missle_y - 32) div 8);
     addresscalc:=SCREEN_GAME + row_max[cy] + cx;
     Poke(addresscalc, SWARN);
     Poke(addresscalc + VIEWWIDTH, SWARN);
@@ -1028,6 +1028,7 @@ begin
     // setting up game playfield font
     chbas:= Hi(CHARSET_GAME);
 
+    colbaks:=$04;
 
     fillbyte(pointer(SCREEN_GAME), $900, 0);    // size as per memory map
     fillbyte(pointer(SCREEN_BOTTOM), $100, 0);  
@@ -1162,8 +1163,8 @@ begin
             // print_bottom(6, 0, );
             // print_bottom(10, 0, '   ');print_bottom(10, 0, t);
 
-            print_bottom(25, 0, '   ');print_bottom(25, 0, missle2X);
-            print_bottom(29, 0, '   ');print_bottom(29, 0, missle2Y);
+            print_bottom(25, 0, '   ');print_bottom(25, 0, playerX);
+            print_bottom(29, 0, '   ');print_bottom(29, 0, playerY);
 
             // print_bottom(35, 0, '   ');print_bottom(35, 0, m0pf);
             // print_bottom(38, 0, '   ');print_bottom(38, 0, m1pf);

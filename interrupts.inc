@@ -52,7 +52,7 @@ begin
 	asm {
 		phr 				; store registers
 		};
-	if music then msx.play;
+	// if music then msx.play;
 	asm {
 		//mwa #dli_game1 VDSLST
 		plr 				; restore registers

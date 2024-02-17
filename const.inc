@@ -32,8 +32,10 @@ MAXWIDTH = 96;
 VIEWWIDTH = 48;   // needs to be half of MAXWIDTH
 MAXHEIGHT = 21;
 // ROWLIMIT = 8;
-HPOSMIN = 0;
-HPOSMAX = 3;
+// HPOSMIN = 0;
+// HPOSMAX = 3;
+HPOSMIN = 12;
+HPOSMAX = 15;
 POFFSET = 6; //  player position -6 correction for 1/2 size of p_spriteHeight
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
