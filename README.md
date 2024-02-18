@@ -1,5 +1,5 @@
 # Shon
-Atari 8 bit Shoot up action game
+Unfinished Atari 8 bit Shoot up action game
 
 Files Description
 =================
