@@ -361,7 +361,7 @@ begin
             // if (strig0 = 0) and (not missle1Fired) then begin
             if (strig0 = 0) then begin
                 missle1Fired:=true;
-                missle2Fired:=true;
+                // missle2Fired:=true;
             end else
             begin
 
@@ -443,16 +443,49 @@ begin
 end;
 
 
-procedure calcpos(missle_x, missle_y : byte);
+procedure p_calcpos(calc_x, calc_y : byte);
 
 begin
-    cx:= ((missle_x - 48) div 4);
-    cy:= ((missle_y - 32) div 8);
-    addresscalc:=SCREEN_GAME + row_max[cy] + cx;
-    Poke(addresscalc, SWARN);
-    Poke(addresscalc + VIEWWIDTH, SWARN);
+    // cx:= ((calc_x - 48) div 4);
+    // cy:= ((calc_y - 32) div 8);
+    // addresscalc:=SCREEN_GAME + row_max[cy] + cx;
+    // Poke(addresscalc, SWARN);
+    // Poke(addresscalc + VIEWWIDTH, SWARN);
+
+
+
+    cx:= ((calc_x - 40) div 4);
+    cy:= ((calc_y - 16) div 8);
+    
+    lms := DISPLAY_LIST_GAME + 2;
+    addresscalc:=dpeek(lms) + row_max[cy] + cx;
+    t:=Peek(addresscalc);
+    // case t of
+    //     SENGINE1, SENGINE2, SENGINE3, SENGINE4,
+    //     SHEAD1, SHEAD2, SHEAD3, SHEAD4: begin
+    //         Poke(addresscalc, SWARN);
+    //         Poke(addresscalc + VIEWWIDTH, SWARN);
+    //     end;
+    // end;
+
+
+        Poke(addresscalc, SWARN);
+        Poke(addresscalc + VIEWWIDTH, SWARN);
 end;
 
+
+procedure m_calcpos(calc_x, calc_y : byte);
+
+begin
+    cx:= ((calc_x - 48) div 4);
+    cy:= ((calc_y - 16) div 8);
+    
+    lms := DISPLAY_LIST_GAME + 2;
+    addresscalc:=dpeek(lms) + row_max[cy] + cx;
+    t:=Peek(addresscalc);
+        Poke(addresscalc, SWARN);
+        Poke(addresscalc + VIEWWIDTH, SWARN);
+end;
 
 procedure player(x, y: byte);
 (*
@@ -964,24 +997,27 @@ procedure collisionDetection;
 begin
     // player collision
     if ((p0pf or p1pf)) <> 0 then begin
+        p_calcpos(playerX, playerY);
         playerExplode:=true;
         // current_frame:=0;
     end;
     // missle1 collision
     if m0pf <> 0 then begin
+        m_calcpos(missle1X, missle1Y);
         missle1Explode:=true;
         // current_frame:=0;
     end;
     
     // missle2 collision
     if m1pf <> 0 then begin
+        // calcpos(missle2X, missle2Y);
         missle2Explode:=true;
         // current_frame:=0;
     end;
 
     // waitframe;
     // reset collision detection
-    // hitclr:=$ff;
+    hitclr:=$ff;
 end;
 
 // -----------------------------------------------------------------------------
@@ -1062,7 +1098,7 @@ begin
         // if (gameTime mod 96) = 0 then begin
         //     animrockets:=false;
         // end;
-        hitclr:=$ff;
+        // hitclr:=$ff;
 
 
         if scroll then
@@ -1090,7 +1126,41 @@ begin
             end;
             MoveRight;
         end;
-        
+        if missle1Explode then begin
+            // clear missle1
+            addressTop:=PMG_BASE + $300 + missle1Y_prev;
+            missles_tmp:=Peek(addressTop);
+            for i:=0 to p_fire_spriteHeight - 1 do begin
+                Poke(addressTop + i, missles_tmp OR 0);
+            end;
+            
+            hposm0:=0;
+            // missle1X:=0;
+            // missle1Y:=0;
+
+            // pcolr2 := m_explode_colors0[current_frame];
+            // pcolr3 := m_explode_colors1[current_frame];
+            // Move(pointer(m_explode_0[current_frame]), pointer(PMG_BASE + $600 + missle1Y), m_explode_spriteHeight);
+            // Move(pointer(m_explode_1[current_frame]), pointer(PMG_BASE + $700 + missle1Y), m_explode_spriteHeight);
+            // hposp2 := missle1X;
+            // hposp3 := hposp2 + m_explode_spriteGap;
+            
+            // WaitFrame;
+            // WaitFrame;
+            // WaitFrame;
+
+            if current_frame < m_explode_spriteFrames-1 then Inc(current_frame)
+            else begin
+                current_frame:=0;
+                missle1X:=0;
+                missle1Y:=0;
+                hposp2:= 0;
+                hposp3:= 0;
+                missle1Fired:=false;
+                missle1Explode:=false;
+            end;        
+        end;
+
         if missle2Explode then begin
             // clear missle2
             addressTop:=PMG_BASE + $300 + missle2Y_prev;
@@ -1099,8 +1169,6 @@ begin
                 Poke(addressTop + i, missles_tmp OR 0);
             end;
 
-            // scroll:=false;
-            // calcpos(missle2X, missle2Y);
 
             pcolr2 := m_explode_colors0[current_frame];
             pcolr3 := m_explode_colors1[current_frame];
@@ -1148,7 +1216,7 @@ begin
         begin
             ReadInput;
             player(playerX, playerY);
-            if missle1Fired then begin
+            if missle1Fired and not missle1Explode then begin
                 playerMissle1;
             end;
             if missle2Fired and not missle2Explode then begin
@@ -1158,18 +1226,16 @@ begin
         
         if (gameTime mod 20) = 0 then
         begin
-            // calcpos(playerX, playerY);
             print_bottom(1, 0, gameTime);
             // print_bottom(6, 0, );
             // print_bottom(10, 0, '   ');print_bottom(10, 0, t);
 
-            print_bottom(25, 0, '   ');print_bottom(25, 0, playerX);
-            print_bottom(29, 0, '   ');print_bottom(29, 0, playerY);
-
-            // print_bottom(35, 0, '   ');print_bottom(35, 0, m0pf);
-            // print_bottom(38, 0, '   ');print_bottom(38, 0, m1pf);
-            print_bottom(33, 0, '   ');print_bottom(33, 0, cx);
-            print_bottom(37, 0, '   ');print_bottom(37, 0, cy);
+            // print_bottom(20, 0, '   ');print_bottom(20, 0, playerX);
+            // print_bottom(25, 0, '   ');print_bottom(25, 0, playerY);
+            print_bottom(20, 0, '   ');print_bottom(20, 0, m0pf);
+            print_bottom(25, 0, '   ');print_bottom(25, 0, m1pf);
+            print_bottom(33, 0, '   ');print_bottom(33, 0, missle1X);
+            print_bottom(37, 0, '   ');print_bottom(37, 0, missle1Y);
 
         end;
 
